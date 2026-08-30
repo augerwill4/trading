@@ -1,7 +1,9 @@
 # 8 EMA Cloud (TradingView / Pine v6)
 
 A clouded 8 EMA instead of a single line. The band is filled between the **8 EMA**
-and the **9 EMA**, and can be padded so it has real surface area on the chart.
+and the **9 EMA**, and can be padded so it has real surface area on the chart. By
+default the padding hangs **downward only** — the top edge sits on the raw EMA and
+the cloud thickens through the middle and bottom.
 
 File: [`8ema-cloud.pine`](8ema-cloud.pine)
 
@@ -23,9 +25,17 @@ symmetrically around that 8/9 ribbon so it reads as a zone:
 | `Percent` | Pads by a fixed % of price (default 0.10%) | When you want the same relative width regardless of volatility |
 | `None` | Pure 8/9 fill, no padding | The literal 8/9 ribbon |
 
-Padding does not move the EMAs — the midline of the cloud is still the 8/9 pair.
-It only sets how much room price has to be "inside" the cloud before the
-above/below alerts fire. Bigger multiple = stricter filter, fewer signals.
+**Expand direction** controls which side gets the padding:
+
+- `Down only` (default) — top edge = the raw 8/9 EMA, all padding below it. Price
+  crossing the top of the cloud is a clean EMA cross; the thick underside acts as
+  the support zone / pullback area.
+- `Both` — symmetric band around the 8/9 pair.
+- `Up only` — mirror image, thick on top.
+
+Padding never moves the EMAs. It only sets how far price has to travel past the
+8/9 pair before it is "outside" the cloud on the padded side. Bigger multiple =
+wider zone, fewer breaks below it.
 
 ## Settings
 
@@ -44,5 +54,7 @@ Add via the alert dialog → condition = *8 EMA Cloud*:
 
 - **Cloud turns bullish** — 8 crosses above 9
 - **Cloud turns bearish** — 8 crosses below 9
-- **Price above cloud** — close crosses above the cloud top
-- **Price below cloud** — close crosses below the cloud bottom
+- **Price above cloud** — close crosses above the cloud top (with `Down only`,
+  that is the raw 8/9 EMA itself)
+- **Price below cloud** — close crosses below the cloud bottom, i.e. all the way
+  through the padded zone

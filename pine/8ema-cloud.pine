@@ -4,8 +4,10 @@
 // -----------------------------------------------------------------------------
 // A clouded 8 EMA instead of a single line: the band is drawn between the
 // 8 EMA and the 9 EMA, then optionally padded (ATR or % of price) so the cloud
-// has real surface area on any timeframe. Set "Expand cloud by" to None for the
-// pure 8/9 ribbon.
+// has real surface area on any timeframe. By default the padding is applied
+// downward only, so the top edge stays on the raw EMA and the cloud thickens
+// through the middle and bottom. Set "Expand cloud by" to None for the pure
+// 8/9 ribbon.
 //
 // Cloud is green when the 8 is above the 9 (momentum up) and red when it is
 // below (momentum down).
@@ -27,6 +29,9 @@ padMode  = input.string("ATR", "Expand cloud by", options = ["None", "ATR", "Per
      tooltip = "The 8 and 9 EMA are nearly identical, so the raw fill is razor thin. " +
                "ATR pads the band by a fraction of average range (scales with volatility and instrument). " +
                "Percent pads by a fixed % of price. None = pure 8/9 ribbon.")
+expandDir = input.string("Down only", "Expand direction", options = ["Down only", "Both", "Up only"], group = gT,
+     tooltip = "Down only keeps the top edge on the raw EMA and hangs all the padding underneath, " +
+               "so the cloud is thick through the middle and bottom and clean on top.")
 atrLen   = input.int(14, "ATR length", minval = 1, group = gT)
 atrMult  = input.float(0.25, "ATR multiple", minval = 0.0, step = 0.05, group = gT)
 pctWidth = input.float(0.10, "Percent of price", minval = 0.0, step = 0.01, group = gT)
@@ -52,8 +57,11 @@ pad = switch padMode
     "Percent" => close * pctWidth / 100.0
     => 0.0
 
-top = math.max(fastRaw, slowRaw) + pad
-bot = math.min(fastRaw, slowRaw) - pad
+padUp   = expandDir == "Down only" ? 0.0 : pad
+padDown = expandDir == "Up only"   ? 0.0 : pad
+
+top = math.max(fastRaw, slowRaw) + padUp
+bot = math.min(fastRaw, slowRaw) - padDown
 
 bull = fastRaw > slowRaw
 base = bull ? bullCol : bearCol
