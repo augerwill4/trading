@@ -1,0 +1,80 @@
+//@version=6
+// =============================================================================
+// 8 EMA Cloud
+// -----------------------------------------------------------------------------
+// A clouded 8 EMA instead of a single line: the band is drawn between the
+// 8 EMA and the 9 EMA, then optionally padded (ATR or % of price) so the cloud
+// has real surface area on any timeframe. Set "Expand cloud by" to None for the
+// pure 8/9 ribbon.
+//
+// Cloud is green when the 8 is above the 9 (momentum up) and red when it is
+// below (momentum down).
+// =============================================================================
+
+indicator("8 EMA Cloud", shorttitle = "8EMA Cloud", overlay = true)
+
+// ── Cloud ────────────────────────────────────────────────────────────────────
+gC       = "Cloud"
+src      = input.source(close, "Source",   group = gC)
+fastLen  = input.int(8, "Fast EMA", minval = 1, group = gC)
+slowLen  = input.int(9, "Slow EMA", minval = 1, group = gC)
+tf       = input.timeframe("", "Cloud timeframe", group = gC,
+     tooltip = "Blank = chart timeframe. Set e.g. 15 to carry the 15m 8EMA cloud onto a 1m chart.")
+
+// ── Thickness ────────────────────────────────────────────────────────────────
+gT       = "Thickness"
+padMode  = input.string("ATR", "Expand cloud by", options = ["None", "ATR", "Percent"], group = gT,
+     tooltip = "The 8 and 9 EMA are nearly identical, so the raw fill is razor thin. " +
+               "ATR pads the band by a fraction of average range (scales with volatility and instrument). " +
+               "Percent pads by a fixed % of price. None = pure 8/9 ribbon.")
+atrLen   = input.int(14, "ATR length", minval = 1, group = gT)
+atrMult  = input.float(0.25, "ATR multiple", minval = 0.0, step = 0.05, group = gT)
+pctWidth = input.float(0.10, "Percent of price", minval = 0.0, step = 0.01, group = gT)
+
+// ── Style ────────────────────────────────────────────────────────────────────
+gS       = "Style"
+bullCol  = input.color(#26a69a, "Bullish", inline = "col", group = gS)
+bearCol  = input.color(#ef5350, "Bearish", inline = "col", group = gS)
+fillTr   = input.int(80, "Cloud transparency", minval = 0, maxval = 100, group = gS)
+edgeTr   = input.int(35, "Edge transparency",  minval = 0, maxval = 100, group = gS)
+showEmas = input.bool(false, "Show raw 8 / 9 EMA lines", group = gS)
+colorBar = input.bool(false, "Color bars with the cloud", group = gS)
+
+// ── Calculation ──────────────────────────────────────────────────────────────
+htf = tf == "" ? timeframe.period : tf
+
+[fastRaw, slowRaw, atrRaw] = request.security(syminfo.tickerid, htf,
+     [ta.ema(src, fastLen), ta.ema(src, slowLen), ta.atr(atrLen)],
+     gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
+
+pad = switch padMode
+    "ATR"     => nz(atrRaw) * atrMult
+    "Percent" => close * pctWidth / 100.0
+    => 0.0
+
+top = math.max(fastRaw, slowRaw) + pad
+bot = math.min(fastRaw, slowRaw) - pad
+
+bull = fastRaw > slowRaw
+base = bull ? bullCol : bearCol
+
+// ── Plots ────────────────────────────────────────────────────────────────────
+pTop = plot(top, "Cloud top",    color = color.new(base, edgeTr), linewidth = 1)
+pBot = plot(bot, "Cloud bottom", color = color.new(base, edgeTr), linewidth = 1)
+fill(pTop, pBot, color = color.new(base, fillTr), title = "Cloud")
+
+plot(showEmas ? fastRaw : na, "8 EMA", color = color.new(base, 0),  linewidth = 1)
+plot(showEmas ? slowRaw : na, "9 EMA", color = color.new(base, 55), linewidth = 1)
+
+barcolor(colorBar ? base : na)
+
+// ── State & alerts ───────────────────────────────────────────────────────────
+crossUp    = ta.crossover(fastRaw, slowRaw)
+crossDn    = ta.crossunder(fastRaw, slowRaw)
+closeAbove = ta.crossover(close, top)
+closeBelow = ta.crossunder(close, bot)
+
+alertcondition(crossUp,    "Cloud turns bullish", "8 EMA crossed above the 9 EMA — cloud flipped green")
+alertcondition(crossDn,    "Cloud turns bearish", "8 EMA crossed below the 9 EMA — cloud flipped red")
+alertcondition(closeAbove, "Price above cloud",   "Price closed above the 8 EMA cloud")
+alertcondition(closeBelow, "Price below cloud",   "Price closed below the 8 EMA cloud")
