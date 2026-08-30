@@ -6,6 +6,8 @@
 // band between two EMAs, so the thickness is the real spread between them:
 //
 //   8 / 9    tight cloud that rides price   — colored green up / red down
+//            (or, in "High / low band" mode, one 8 EMA of the highs and one of
+//             the lows, giving a fatter band sized by the real candle range)
 //   5 / 12   slightly wider trigger cloud   — purple
 //   34 / 50  mid-term trend band            — navy
 //   72 / 89  long-term trend band           — dark green
@@ -37,6 +39,15 @@ c1B    = input.int(9, "Slow", minval = 1, inline = "1len", group = g1)
 c1Up   = input.color(#22c55e, "Up", inline = "1col", group = g1)
 c1Dn   = input.color(#ef4444, "Down", inline = "1col", group = g1)
 c1Tr   = input.int(15, "Transparency", minval = 0, maxval = 100, group = g1)
+c1Mode = input.string("EMA pair", "Band edges", options = ["EMA pair", "High / low band"], group = g1,
+     tooltip = "EMA pair fills between the two lengths above. High / low band runs one EMA of the highs " +
+               "and one of the lows at the fast length — a true band whose height is the average candle " +
+               "range, so it is noticeably fatter than a thick line and breathes with the chart.")
+c1Min  = input.float(0.0, "Minimum thickness (ATR multiple)", minval = 0.0, step = 0.05, group = g1,
+     tooltip = "Floor on the band height so it never collapses to a hairline in quiet tape. 0 = no floor.")
+c1W    = input.int(1, "Edge width", minval = 1, maxval = 4, group = g1)
+c1Glow = input.bool(false, "Soft outer glow", group = g1,
+     tooltip = "Paints a wider, fainter halo around the band for the softer, rounder look.")
 
 // ── Cloud 2 · 5/12 (trigger) ─────────────────────────────────────────────────
 g2   = "Cloud 2  ·  5 / 12  (trigger)"
@@ -99,9 +110,10 @@ pctWidth = input.float(0.10, "Percent of price", minval = 0.0, step = 0.01, grou
 // ── Data ─────────────────────────────────────────────────────────────────────
 htf = tf == "" ? timeframe.period : tf
 
-[e1a, e1b, e2a, e2b, e3a, e3b, e4a, e4b, e5a, e5b, e6a, e6b, atrRaw] =
+[e1a, e1b, e1h, e1l, e2a, e2b, e3a, e3b, e4a, e4b, e5a, e5b, e6a, e6b, atrRaw] =
      request.security(syminfo.tickerid, htf,
-     [ta.ema(src, c1A), ta.ema(src, c1B), ta.ema(src, c2A), ta.ema(src, c2B),
+     [ta.ema(src, c1A), ta.ema(src, c1B), ta.ema(high, c1A), ta.ema(low, c1A),
+      ta.ema(src, c2A), ta.ema(src, c2B),
       ta.ema(src, c3A), ta.ema(src, c3B), ta.ema(src, c4A), ta.ema(src, c4B),
       ta.ema(src, c5A), ta.ema(src, c5B), ta.ema(src, c6A), ta.ema(src, c6B),
       ta.atr(atrLen)],
@@ -158,11 +170,24 @@ p2a = plot(c2On ? math.max(e2a, e2b) : na, "5/12 top", color = c2col)
 p2b = plot(c2On ? math.min(e2a, e2b) : na, "5/12 bottom", color = c2col)
 fill(p2a, p2b, color = c2col, title = "Cloud 5/12")
 
-cloudTop = math.max(e1a, e1b) + padUp
-cloudBot = math.min(e1a, e1b) - padDown
-c1col = color.new(base, c1Tr)
-p1a = plot(c1On ? cloudTop : na, "8/9 top", color = c1col)
-p1b = plot(c1On ? cloudBot : na, "8/9 bottom", color = c1col)
+rawTop = c1Mode == "High / low band" ? e1h : math.max(e1a, e1b)
+rawBot = c1Mode == "High / low band" ? e1l : math.min(e1a, e1b)
+
+// Hold the band to a minimum height without moving its center.
+mid  = (rawTop + rawBot) / 2.0
+half = math.max((rawTop - rawBot) / 2.0, nz(atrRaw) * c1Min / 2.0)
+
+cloudTop = mid + half + padUp
+cloudBot = mid - half - padDown
+
+c1col   = color.new(base, c1Tr)
+glowCol = color.new(base, math.min(c1Tr + 45, 96))
+g1a = plot(c1On and c1Glow ? cloudTop : na, "8/9 glow top", color = glowCol, linewidth = c1W + 3)
+g1b = plot(c1On and c1Glow ? cloudBot : na, "8/9 glow bottom", color = glowCol, linewidth = c1W + 3)
+fill(g1a, g1b, color = glowCol, title = "Cloud 8/9 glow")
+
+p1a = plot(c1On ? cloudTop : na, "8/9 top", color = c1col, linewidth = c1W)
+p1b = plot(c1On ? cloudBot : na, "8/9 bottom", color = c1col, linewidth = c1W)
 fill(p1a, p1b, color = c1col, title = "Cloud 8/9")
 
 plot(showEmas ? e1a : na, "8 EMA", color = color.new(base, 0),  linewidth = 1)

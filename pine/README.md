@@ -49,6 +49,44 @@ want the 8/9 band itself fatter than the true spread — `ATR` or `Percent` sizi
 with the `Auto (trend)` direction that pads below in an uptrend and above in a
 downtrend.
 
+### Making the 8 EMA a real band (the purple one)
+
+A thick EMA *line* is a fixed number of pixels — it looks the same at every zoom
+and never changes height. A band has two real edges, so it is bigger and it
+breathes with the chart. Cloud 1 has a **Band edges** setting for this:
+
+- **EMA pair** — fills between the two lengths (8 and 9). Thin, because those two
+  EMAs nearly overlap.
+- **High / low band** — runs one EMA of the **highs** and one of the **lows** at
+  the fast length. The band height is then the average candle range, which is
+  what makes it visibly fatter than even a heavy line.
+
+Supporting controls:
+
+- **Minimum thickness (ATR multiple)** — floor on the band height so it never
+  collapses in quiet tape. `0.15` is a good starting point; `0` disables it.
+- **Edge width** — thickness of the two edge curves (1–4).
+- **Soft outer glow** — a wider, fainter halo around the band for a rounder,
+  softer edge.
+
+**To get just the purple 8 EMA band on its own** (nothing else on the chart):
+
+| Setting | Value |
+| --- | --- |
+| Cloud 1 · Enabled | on |
+| Cloud 1 · Fast / Slow | 8 / 9 |
+| Cloud 1 · Band edges | `High / low band` |
+| Cloud 1 · Up **and** Down color | the same purple, e.g. `#A855F7` |
+| Cloud 1 · Transparency | `10` |
+| Cloud 1 · Edge width | `2` |
+| Cloud 1 · Soft outer glow | on |
+| Clouds 2–6 · Enabled | off |
+
+Setting Up and Down to the same purple keeps it one color instead of flipping
+green/red. Raise **Minimum thickness** if you want it fatter still on quiet
+symbols; that is the knob to turn, not Edge width — width just thickens the
+outline, thickness grows the band itself.
+
 Other settings: source, **Cloud timeframe** (blank = chart; set `30` to carry the
 30m clouds onto a 10m chart, non-repainting), raw 8/9 lines, bar coloring.
 
