@@ -2,8 +2,8 @@
 
 A clouded 8 EMA instead of a single line. The band is filled between the **8 EMA**
 and the **9 EMA**, and can be padded so it has real surface area on the chart. By
-default the padding hangs **downward only** — the top edge sits on the raw EMA and
-the cloud thickens through the middle and bottom.
+default the padding **follows the trend**: while price is trending up the cloud
+thickens below the EMA, and when the trend flips down it migrates above it.
 
 File: [`8ema-cloud.pine`](8ema-cloud.pine)
 
@@ -27,15 +27,22 @@ symmetrically around that 8/9 ribbon so it reads as a zone:
 
 **Expand direction** controls which side gets the padding:
 
-- `Down only` (default) — top edge = the raw 8/9 EMA, all padding below it. Price
-  crossing the top of the cloud is a clean EMA cross; the thick underside acts as
-  the support zone / pullback area.
+- `Auto (trend)` (default) — the thickness flips with the trend. While the 8 is
+  above the 9 the padding hangs **below** the EMA, so the cloud is a support zone
+  under price and the top edge is a clean EMA line. When the 8 crosses below the 9
+  it migrates **above** the EMA, becoming resistance overhead with a clean bottom
+  edge. The thin edge always faces the direction price is moving.
+- `Down only` — pinned below the EMA regardless of trend.
+- `Up only` — pinned above.
 - `Both` — symmetric band around the 8/9 pair.
-- `Up only` — mirror image, thick on top.
+
+**Flip smoothing (bars)** (Auto only) eases the migration across a trend change so
+the cloud slides from one side to the other over N bars instead of snapping.
+Default 3; set 1 to snap instantly on the cross.
 
 Padding never moves the EMAs. It only sets how far price has to travel past the
 8/9 pair before it is "outside" the cloud on the padded side. Bigger multiple =
-wider zone, fewer breaks below it.
+wider zone, fewer breaks through it.
 
 ## Settings
 
@@ -54,7 +61,9 @@ Add via the alert dialog → condition = *8 EMA Cloud*:
 
 - **Cloud turns bullish** — 8 crosses above 9
 - **Cloud turns bearish** — 8 crosses below 9
-- **Price above cloud** — close crosses above the cloud top (with `Down only`,
-  that is the raw 8/9 EMA itself)
-- **Price below cloud** — close crosses below the cloud bottom, i.e. all the way
-  through the padded zone
+- **Price above cloud** — close crosses above the cloud top
+- **Price below cloud** — close crosses below the cloud bottom
+
+In `Auto`, these are asymmetric by design: in an uptrend the top edge is the bare
+EMA (so a break above it is immediate) while a break below has to clear the whole
+padded support zone. In a downtrend it is the mirror image.

@@ -4,10 +4,10 @@
 // -----------------------------------------------------------------------------
 // A clouded 8 EMA instead of a single line: the band is drawn between the
 // 8 EMA and the 9 EMA, then optionally padded (ATR or % of price) so the cloud
-// has real surface area on any timeframe. By default the padding is applied
-// downward only, so the top edge stays on the raw EMA and the cloud thickens
-// through the middle and bottom. Set "Expand cloud by" to None for the pure
-// 8/9 ribbon.
+// has real surface area on any timeframe. By default the padding follows the
+// trend: in an uptrend it hangs below the EMA (support under price), in a
+// downtrend it stacks above it (resistance overhead), easing across the flip.
+// Set "Expand cloud by" to None for the pure 8/9 ribbon.
 //
 // Cloud is green when the 8 is above the 9 (momentum up) and red when it is
 // below (momentum down).
@@ -29,9 +29,14 @@ padMode  = input.string("ATR", "Expand cloud by", options = ["None", "ATR", "Per
      tooltip = "The 8 and 9 EMA are nearly identical, so the raw fill is razor thin. " +
                "ATR pads the band by a fraction of average range (scales with volatility and instrument). " +
                "Percent pads by a fixed % of price. None = pure 8/9 ribbon.")
-expandDir = input.string("Down only", "Expand direction", options = ["Down only", "Both", "Up only"], group = gT,
-     tooltip = "Down only keeps the top edge on the raw EMA and hangs all the padding underneath, " +
-               "so the cloud is thick through the middle and bottom and clean on top.")
+expandDir  = input.string("Auto (trend)", "Expand direction",
+     options = ["Auto (trend)", "Down only", "Up only", "Both"], group = gT,
+     tooltip = "Auto flips the thickness with the trend: while the 8 is above the 9 the padding hangs " +
+               "below the EMA (support underneath price), and while the 8 is below the 9 it stacks " +
+               "above the EMA (resistance overhead). The other options pin it to one side.")
+flipBars   = input.int(3, "Flip smoothing (bars)", minval = 1, group = gT,
+     tooltip = "Auto only: how many bars the cloud takes to migrate from one side of the EMA to the " +
+               "other on a trend flip. 1 = snap instantly.")
 atrLen   = input.int(14, "ATR length", minval = 1, group = gT)
 atrMult  = input.float(0.25, "ATR multiple", minval = 0.0, step = 0.05, group = gT)
 pctWidth = input.float(0.10, "Percent of price", minval = 0.0, step = 0.01, group = gT)
@@ -57,14 +62,29 @@ pad = switch padMode
     "Percent" => close * pctWidth / 100.0
     => 0.0
 
-padUp   = expandDir == "Down only" ? 0.0 : pad
-padDown = expandDir == "Up only"   ? 0.0 : pad
+bull = fastRaw > slowRaw
+base = bull ? bullCol : bearCol
+
+// Weight of the padding that sits below the EMA: 1 in an uptrend, 0 in a
+// downtrend, easing across the flip so the cloud migrates instead of jumping.
+sideRaw = bull ? 1.0 : 0.0
+sideEma = ta.ema(sideRaw, flipBars)
+wDown   = flipBars <= 1 ? sideRaw : sideEma
+
+padDown = switch expandDir
+    "Auto (trend)" => pad * wDown
+    "Down only"    => pad
+    "Both"         => pad
+    => 0.0
+
+padUp = switch expandDir
+    "Auto (trend)" => pad * (1.0 - wDown)
+    "Up only"      => pad
+    "Both"         => pad
+    => 0.0
 
 top = math.max(fastRaw, slowRaw) + padUp
 bot = math.min(fastRaw, slowRaw) - padDown
-
-bull = fastRaw > slowRaw
-base = bull ? bullCol : bearCol
 
 // ── Plots ────────────────────────────────────────────────────────────────────
 pTop = plot(top, "Cloud top",    color = color.new(base, edgeTr), linewidth = 1)
