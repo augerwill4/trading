@@ -6,8 +6,13 @@ trailing stop.
 
 | File | What it draws |
 | --- | --- |
+| [`8ema-wave.pine`](8ema-wave.pine) | The 8 EMA Wave — 8/9/10 EMAs, colored by price vs the key levels |
 | [`8ema-cloud.pine`](8ema-cloud.pine) | The EMA cloud stack |
 | [`levels-and-trade.pine`](levels-and-trade.pine) | PMH / PML / PDH / PDL lines, `(E)` entries, dotted trailing stop |
+
+`8ema-wave.pine` is the one that matches the reference indicator's 8 EMA Wave.
+The other two are the broader cloud setup and can be used alongside it or not
+at all.
 
 ## Install
 
@@ -21,7 +26,46 @@ Symbol → Extended trading hours**.
 
 ---
 
-## 1. 8 EMA Cloud System
+## 1. 8 EMA Wave
+
+The wave is the filled space between the **8, 9 and 10 EMAs**. Its color does not
+come from the EMAs at all — it is set by where price is trading relative to the
+key levels:
+
+| Price position | Wave |
+| --- | --- |
+| Above **both** PDH and PMH | bright green |
+| Between PDH and PMH | dark green |
+| Inside the levels | neutral gray |
+| Between PDL and PML | dark red |
+| Below **both** PDL and PML | bright red |
+
+The **top half of the wave carries a purple overlay** in every state, which is
+what gives it the two-tone look. Unlike the original, the purple is an input
+here rather than hard-coded, so you can change or disable it.
+
+PDH/PDL come from the daily bar (offset one day back, so no repainting). PMH/PML
+are tracked live over the `0400-0930 America/New_York` session — both the session
+and the timezone are inputs, so it works for futures or another market's hours.
+If premarket data is unavailable on a symbol, the wave falls back to the previous
+day's levels alone instead of going blank.
+
+**Plot the levels themselves** is off by default — the levels drive the color
+whether or not they are drawn, and `levels-and-trade.pine` already draws them
+with tags.
+
+**Alerts:** wave turns bright green (cleared both PDH and PMH), turns bright red
+(broke both PDL and PML), price closing above or below the wave.
+
+> Two things the documentation you sent does not specify, which I filled in: the
+> bearish rules are mirrored from the bullish ones, and "inside the levels" is
+> the neutral state. The `(L)` and `(E)` signal logic the doc mentions is
+> described only as "used in the signal logic described earlier" — send me that
+> section and I will match those triggers too.
+
+---
+
+## 2. 8 EMA Cloud System
 
 Each cloud is the filled band between two EMAs, so its thickness *is* the real
 spread between them. Defaults, slowest painted first so the fast clouds sit on
@@ -95,7 +139,7 @@ the 8/9 cloud crossing above/below the 34/50 trend cloud.
 
 ---
 
-## 2. Session Levels & Trade Markers
+## 3. Session Levels & Trade Markers
 
 ### Levels
 

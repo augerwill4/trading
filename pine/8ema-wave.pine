@@ -1,0 +1,116 @@
+//@version=6
+// =============================================================================
+// 8 EMA Wave
+// -----------------------------------------------------------------------------
+// The wave is the filled space between the 8, 9 and 10 EMAs. Its color is set
+// purely by where price is trading relative to the key levels — previous day
+// high/low (PDH/PDL) and premarket high/low (PMH/PML) — not by the EMAs:
+//
+//   above BOTH  PDH and PMH  ->  bright green
+//   between     PDH and PMH  ->  dark green
+//   below BOTH  PDL and PML  ->  bright red
+//   between     PDL and PML  ->  dark red
+//   inside the levels        ->  neutral (consolidating)
+//
+// The top half of the wave carries a purple overlay in every state.
+//
+// Everything is computed on closed bars from the chart's own data, so the wave
+// updates live on the forming candle and never repaints history.
+// =============================================================================
+
+indicator("8 EMA Wave", shorttitle = "8 EMA Wave", overlay = true)
+
+// ── Wave ─────────────────────────────────────────────────────────────────────
+gW      = "Wave"
+show    = input.bool(true, "Show the wave", group = gW,
+     tooltip = "Purely visual — turning it off does not change any signal or alert.")
+srcW    = input.source(close, "Source", group = gW)
+lenA    = input.int(8,  "EMA A", minval = 1, inline = "len", group = gW)
+lenB    = input.int(9,  "EMA B", minval = 1, inline = "len", group = gW)
+lenC    = input.int(10, "EMA C", minval = 1, inline = "len", group = gW)
+waveTr  = input.int(10, "Wave transparency", minval = 0, maxval = 100, group = gW)
+
+// ── Colors ───────────────────────────────────────────────────────────────────
+gC       = "Colors"
+colBull  = input.color(#00e676, "Bullish · above both PDH and PMH", group = gC)
+colBullW = input.color(#1b5e20, "Bullish · between PDH and PMH", group = gC)
+colBear  = input.color(#ff1744, "Bearish · below both PDL and PML", group = gC)
+colBearW = input.color(#7f1d1d, "Bearish · between PDL and PML", group = gC)
+colNeut  = input.color(#78909c, "Neutral · inside the levels", group = gC)
+colTop   = input.color(#7c4dff, "Top-half overlay", group = gC)
+topTr    = input.int(25, "Top-half transparency", minval = 0, maxval = 100, group = gC)
+
+// ── Levels ───────────────────────────────────────────────────────────────────
+gL      = "Key levels"
+pmSess  = input.session("0400-0930", "Premarket session", group = gL)
+tzName  = input.string("America/New_York", "Session timezone", group = gL)
+showLv  = input.bool(false, "Plot the levels themselves", group = gL,
+     tooltip = "Off by default — the levels drive the wave color whether or not they are drawn.")
+
+// Premarket high / low, reset each session day.
+nyDay  = dayofmonth(time, tzName)
+newDay = nyDay != nyDay[1]
+inPre  = not na(time(timeframe.period, pmSess, tzName))
+
+var float pmh = na
+var float pml = na
+if newDay
+    pmh := na
+    pml := na
+if inPre
+    pmh := na(pmh) ? high : math.max(pmh, high)
+    pml := na(pml) ? low  : math.min(pml, low)
+
+// Previous day high / low. The [1] offset makes lookahead safe here.
+[pdh, pdl] = request.security(syminfo.tickerid, "D", [high[1], low[1]],
+     lookahead = barmerge.lookahead_on)
+
+// Fall back to whichever level exists if the other is unavailable.
+hiA = nz(pdh, pmh)
+hiB = nz(pmh, pdh)
+loA = nz(pdl, pml)
+loB = nz(pml, pdl)
+
+aboveBoth = not na(hiA) and not na(hiB) and close > hiA and close > hiB
+betweenHi = not aboveBoth and ((not na(hiA) and close > hiA) or (not na(hiB) and close > hiB))
+belowBoth = not na(loA) and not na(loB) and close < loA and close < loB
+betweenLo = not belowBoth and ((not na(loA) and close < loA) or (not na(loB) and close < loB))
+
+waveCol = aboveBoth ? colBull :
+          betweenHi ? colBullW :
+          belowBoth ? colBear :
+          betweenLo ? colBearW :
+          colNeut
+
+// ── Wave geometry ────────────────────────────────────────────────────────────
+ea  = ta.ema(srcW, lenA)
+eb  = ta.ema(srcW, lenB)
+ec  = ta.ema(srcW, lenC)
+
+waveTop = math.max(ea, eb, ec)
+waveBot = math.min(ea, eb, ec)
+waveMid = (waveTop + waveBot) / 2.0
+
+bodyCol = color.new(waveCol, waveTr)
+overCol = color.new(colTop,  topTr)
+
+pTop = plot(show ? waveTop : na, "Wave top", color = overCol)
+pMid = plot(show ? waveMid : na, "Wave mid", color = color.new(colTop, 100), display = display.none)
+pBot = plot(show ? waveBot : na, "Wave bottom", color = bodyCol)
+
+fill(pTop, pMid, color = overCol, title = "Top half (purple overlay)")
+fill(pMid, pBot, color = bodyCol, title = "Bottom half (state color)")
+
+// ── Optional level plots ─────────────────────────────────────────────────────
+plot(showLv ? pdh : na, "PDH", color = color.new(#4ade80, 0), style = plot.style_linebr)
+plot(showLv ? pdl : na, "PDL", color = color.new(#f87171, 0), style = plot.style_linebr)
+plot(showLv ? pmh : na, "PMH", color = color.new(#22c55e, 0), style = plot.style_circles)
+plot(showLv ? pml : na, "PML", color = color.new(#ef4444, 0), style = plot.style_circles)
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+alertcondition(aboveBoth and not aboveBoth[1], "Wave turns bright green",
+     "Price cleared both PDH and PMH")
+alertcondition(belowBoth and not belowBoth[1], "Wave turns bright red",
+     "Price broke below both PDL and PML")
+alertcondition(ta.crossover(close, waveTop),  "Price above the wave", "Price closed above the 8 EMA Wave")
+alertcondition(ta.crossunder(close, waveBot), "Price below the wave", "Price closed below the 8 EMA Wave")
