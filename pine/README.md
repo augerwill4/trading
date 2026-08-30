@@ -1,69 +1,97 @@
-# 8 EMA Cloud (TradingView / Pine v6)
+# EMA Cloud Setup (TradingView / Pine v6)
 
-A clouded 8 EMA instead of a single line. The band is filled between the **8 EMA**
-and the **9 EMA**, and can be padded so it has real surface area on the chart. By
-default the padding **follows the trend**: while price is trending up the cloud
-thickens below the EMA, and when the trend flips down it migrates above it.
+Two indicators that together produce the chart layout in the reference
+screenshots: a stack of EMA clouds on price, session levels, entry marks and a
+trailing stop.
 
-File: [`8ema-cloud.pine`](8ema-cloud.pine)
+| File | What it draws |
+| --- | --- |
+| [`8ema-cloud.pine`](8ema-cloud.pine) | The EMA cloud stack |
+| [`levels-and-trade.pine`](levels-and-trade.pine) | PMH / PML / PDH / PDL lines, `(E)` entries, dotted trailing stop |
 
 ## Install
 
-1. TradingView → **Pine Editor** (bottom panel) → **Open → New indicator**.
-2. Delete the template, paste the contents of `8ema-cloud.pine`.
-3. **Save**, then **Add to chart**.
+For each file: TradingView → **Pine Editor** → **Open → New indicator**, delete
+the template, paste the file, **Save**, **Add to chart**. Add both to the same
+chart.
 
-## Why the padding option
+The shaded off-hours columns in the screenshots are not part of either script —
+that is the chart's own setting: right-click the price scale → **Settings →
+Symbol → Extended trading hours**.
 
-The 8 and 9 EMA are one period apart, so the raw fill between them is a hairline —
-technically a cloud, visually a thick line. **Expand cloud by** widens the band
-symmetrically around that 8/9 ribbon so it reads as a zone:
+---
 
-| Setting | What it does | Good for |
-| --- | --- | --- |
-| `ATR` (default) | Pads by `ATR(14) × 0.25` | Scales itself across tickers and timeframes — set once, works everywhere |
-| `Percent` | Pads by a fixed % of price (default 0.10%) | When you want the same relative width regardless of volatility |
-| `None` | Pure 8/9 fill, no padding | The literal 8/9 ribbon |
+## 1. 8 EMA Cloud System
 
-**Expand direction** controls which side gets the padding:
+Each cloud is the filled band between two EMAs, so its thickness *is* the real
+spread between them. Defaults, slowest painted first so the fast clouds sit on
+top:
 
-- `Auto (trend)` (default) — the thickness flips with the trend. While the 8 is
-  above the 9 the padding hangs **below** the EMA, so the cloud is a support zone
-  under price and the top edge is a clean EMA line. When the 8 crosses below the 9
-  it migrates **above** the EMA, becoming resistance overhead with a clean bottom
-  edge. The thin edge always faces the direction price is moving.
-- `Down only` — pinned below the EMA regardless of trend.
-- `Up only` — pinned above.
-- `Both` — symmetric band around the 8/9 pair.
+| Cloud | Pair | Color | Role |
+| --- | --- | --- | --- |
+| 1 | 8 / 9 | **green up, red down** | the fast cloud price rides |
+| 2 | 5 / 12 | purple | trigger cloud |
+| 3 | 20 / 21 | amber *(off)* | optional |
+| 4 | 34 / 50 | navy | mid-term trend band |
+| 5 | 72 / 89 | dark green | long-term trend band |
+| 6 | 180 / 200 | gray *(off)* | optional |
 
-**Flip smoothing (bars)** (Auto only) eases the migration across a trend change so
-the cloud slides from one side to the other over N bars instead of snapping.
-Default 3; set 1 to snap instantly on the cross.
+Only cloud 1 changes color with trend by default — that is what makes the fast
+cloud flip green→red on the downside example while the purple stays purple. Any
+cloud can be made trend-colored by setting different Up and Down colors, or held
+fixed by setting them the same.
 
-Padding never moves the EMAs. It only sets how far price has to travel past the
-8/9 pair before it is "outside" the cloud on the padded side. Bigger multiple =
-wider zone, fewer breaks through it.
+This structure is what you were describing earlier: in an uptrend the clouds
+stack *under* price as layered support, and in a downtrend they sit *above* it as
+resistance. It happens naturally from EMA separation, so the artificial padding
+is now **off by default**. It is still there under **8/9 extra thickness** if you
+want the 8/9 band itself fatter than the true spread — `ATR` or `Percent` sizing,
+with the `Auto (trend)` direction that pads below in an uptrend and above in a
+downtrend.
 
-## Settings
+Other settings: source, **Cloud timeframe** (blank = chart; set `30` to carry the
+30m clouds onto a 10m chart, non-repainting), raw 8/9 lines, bar coloring.
 
-- **Source / Fast EMA / Slow EMA** — defaults `close` / 8 / 9.
-- **Cloud timeframe** — blank uses the chart. Set `15` to overlay the 15m 8EMA
-  cloud on a 1m chart (non-repainting: `lookahead_off`, so the higher-timeframe
-  value only updates when that candle closes).
-- **Style** — bull/bear colors, cloud and edge transparency, optionally show the
-  raw 8/9 lines on top of the fill, optionally color candles with the cloud.
+**Alerts:** 8/9 cross either way, price closing above/below the 8/9 cloud, and
+the 8/9 cloud crossing above/below the 34/50 trend cloud.
 
-Cloud is green while the 8 is above the 9, red while it is below.
+---
 
-## Alerts
+## 2. Session Levels & Trade Markers
 
-Add via the alert dialog → condition = *8 EMA Cloud*:
+### Levels
 
-- **Cloud turns bullish** — 8 crosses above 9
-- **Cloud turns bearish** — 8 crosses below 9
-- **Price above cloud** — close crosses above the cloud top
-- **Price below cloud** — close crosses below the cloud bottom
+- **PMH / PML** — premarket high and low, tracked over the `0400-0930` session in
+  `America/New_York` (both configurable). Dotted, green and red.
+- **PDH / PDL** — previous day's high and low. Solid.
 
-In `Auto`, these are asymmetric by design: in an uptrend the top edge is the bare
-EMA (so a break above it is immediate) while a break below has to clear the whole
-padded support zone. In a downtrend it is the mirror image.
+Each is drawn from the start of the current day and extends past the last bar by
+**Extend levels right (bars)** with its tag at the end. Only the current day's set
+is drawn, so the chart stays clean.
+
+### Entries and stop
+
+The `(E)` marker fires on a **pullback into the cloud that closes back out of it,
+with the trend**:
+
+- **Long** — 8 above 9, the bar dips into the 8/9 cloud (`low ≤ cloud top`), and
+  closes green above it.
+- **Short** — the mirror image.
+- **Only trade with the trend cloud** (on by default) additionally requires the
+  8/9 cloud to be above the 34/50 cloud for longs, below it for shorts.
+
+The dotted red line is a **trailing stop**, not a fixed one. It starts just beyond
+the entry bar's swing (`buffer = 0.25 × ATR(14)`), then ratchets: for a long it
+rises to `cloud bottom − buffer` and never falls back, so it traces up under the
+rally and prints `SL: 727.98` at its current level. A close through it ends the
+trade and the line stops.
+
+Widen **Stop buffer** for more room and fewer stop-outs, tighten it to trail
+closer to the cloud.
+
+**Alerts:** long/short entry, long/short stopped out.
+
+> The entry rule is my reading of the marks in the reference charts — a pullback
+> into the 8/9 cloud continuing with the trend. If your actual trigger differs
+> (a break of PMH/PDH, a specific candle pattern, a volume condition), say so and
+> I will change the rule; everything else stays as is.

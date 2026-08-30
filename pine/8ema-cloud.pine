@@ -1,72 +1,121 @@
 //@version=6
 // =============================================================================
-// 8 EMA Cloud
+// 8 EMA Cloud System
 // -----------------------------------------------------------------------------
-// A clouded 8 EMA instead of a single line: the band is drawn between the
-// 8 EMA and the 9 EMA, then optionally padded (ATR or % of price) so the cloud
-// has real surface area on any timeframe. By default the padding follows the
-// trend: in an uptrend it hangs below the EMA (support under price), in a
-// downtrend it stacks above it (resistance overhead), easing across the flip.
-// Set "Expand cloud by" to None for the pure 8/9 ribbon.
+// A stack of EMA clouds instead of single EMA lines. Each cloud is the filled
+// band between two EMAs, so the thickness is the real spread between them:
 //
-// Cloud is green when the 8 is above the 9 (momentum up) and red when it is
-// below (momentum down).
+//   8 / 9    tight cloud that rides price   — colored green up / red down
+//   5 / 12   slightly wider trigger cloud   — purple
+//   34 / 50  mid-term trend band            — navy
+//   72 / 89  long-term trend band           — dark green
+//   20 / 21 and 180 / 200 available, off by default
+//
+// The stack is what gives the chart its shape: in an uptrend the clouds sit
+// under price as layered support, and in a downtrend they stack above it as
+// resistance — no artificial padding needed. Optional padding on the 8/9 cloud
+// is still available under "8/9 extra thickness".
+//
+// Slow clouds are drawn first so faster clouds paint on top of them.
 // =============================================================================
 
-indicator("8 EMA Cloud", shorttitle = "8EMA Cloud", overlay = true)
+indicator("8 EMA Cloud System", shorttitle = "8EMA Clouds", overlay = true)
 
-// ── Cloud ────────────────────────────────────────────────────────────────────
-gC       = "Cloud"
-src      = input.source(close, "Source",   group = gC)
-fastLen  = input.int(8, "Fast EMA", minval = 1, group = gC)
-slowLen  = input.int(9, "Slow EMA", minval = 1, group = gC)
-tf       = input.timeframe("", "Cloud timeframe", group = gC,
-     tooltip = "Blank = chart timeframe. Set e.g. 15 to carry the 15m 8EMA cloud onto a 1m chart.")
+// ── General ──────────────────────────────────────────────────────────────────
+gG        = "General"
+src       = input.source(close, "Source", group = gG)
+tf        = input.timeframe("", "Cloud timeframe", group = gG,
+     tooltip = "Blank = chart timeframe. Set e.g. 30 to carry the 30m clouds onto a 10m chart.")
+showEmas  = input.bool(false, "Show raw 8 / 9 EMA lines", group = gG)
+colorBars = input.bool(false, "Color bars with the 8/9 cloud", group = gG)
 
-// ── Thickness ────────────────────────────────────────────────────────────────
-gT       = "Thickness"
-padMode  = input.string("ATR", "Expand cloud by", options = ["None", "ATR", "Percent"], group = gT,
-     tooltip = "The 8 and 9 EMA are nearly identical, so the raw fill is razor thin. " +
-               "ATR pads the band by a fraction of average range (scales with volatility and instrument). " +
-               "Percent pads by a fixed % of price. None = pure 8/9 ribbon.")
-expandDir  = input.string("Auto (trend)", "Expand direction",
+// ── Cloud 1 · 8/9 (fast, trend colored) ──────────────────────────────────────
+g1   = "Cloud 1  ·  8 / 9  (fast)"
+c1On   = input.bool(true, "Enabled", group = g1)
+c1A    = input.int(8, "Fast", minval = 1, inline = "1len", group = g1)
+c1B    = input.int(9, "Slow", minval = 1, inline = "1len", group = g1)
+c1Up   = input.color(#22c55e, "Up", inline = "1col", group = g1)
+c1Dn   = input.color(#ef4444, "Down", inline = "1col", group = g1)
+c1Tr   = input.int(15, "Transparency", minval = 0, maxval = 100, group = g1)
+
+// ── Cloud 2 · 5/12 (trigger) ─────────────────────────────────────────────────
+g2   = "Cloud 2  ·  5 / 12  (trigger)"
+c2On   = input.bool(true, "Enabled", group = g2)
+c2A    = input.int(5,  "Fast", minval = 1, inline = "2len", group = g2)
+c2B    = input.int(12, "Slow", minval = 1, inline = "2len", group = g2)
+c2Up   = input.color(#8b5cf6, "Up", inline = "2col", group = g2)
+c2Dn   = input.color(#8b5cf6, "Down", inline = "2col", group = g2)
+c2Tr   = input.int(20, "Transparency", minval = 0, maxval = 100, group = g2)
+
+// ── Cloud 3 · 20/21 (off by default) ─────────────────────────────────────────
+g3   = "Cloud 3  ·  20 / 21"
+c3On   = input.bool(false, "Enabled", group = g3)
+c3A    = input.int(20, "Fast", minval = 1, inline = "3len", group = g3)
+c3B    = input.int(21, "Slow", minval = 1, inline = "3len", group = g3)
+c3Up   = input.color(#f59e0b, "Up", inline = "3col", group = g3)
+c3Dn   = input.color(#f59e0b, "Down", inline = "3col", group = g3)
+c3Tr   = input.int(25, "Transparency", minval = 0, maxval = 100, group = g3)
+
+// ── Cloud 4 · 34/50 (mid trend) ──────────────────────────────────────────────
+g4   = "Cloud 4  ·  34 / 50  (mid trend)"
+c4On   = input.bool(true, "Enabled", group = g4)
+c4A    = input.int(34, "Fast", minval = 1, inline = "4len", group = g4)
+c4B    = input.int(50, "Slow", minval = 1, inline = "4len", group = g4)
+c4Up   = input.color(#1e3a8a, "Up", inline = "4col", group = g4)
+c4Dn   = input.color(#1e3a8a, "Down", inline = "4col", group = g4)
+c4Tr   = input.int(10, "Transparency", minval = 0, maxval = 100, group = g4)
+
+// ── Cloud 5 · 72/89 (long trend) ─────────────────────────────────────────────
+g5   = "Cloud 5  ·  72 / 89  (long trend)"
+c5On   = input.bool(true, "Enabled", group = g5)
+c5A    = input.int(72, "Fast", minval = 1, inline = "5len", group = g5)
+c5B    = input.int(89, "Slow", minval = 1, inline = "5len", group = g5)
+c5Up   = input.color(#15803d, "Up", inline = "5col", group = g5)
+c5Dn   = input.color(#15803d, "Down", inline = "5col", group = g5)
+c5Tr   = input.int(10, "Transparency", minval = 0, maxval = 100, group = g5)
+
+// ── Cloud 6 · 180/200 (off by default) ───────────────────────────────────────
+g6   = "Cloud 6  ·  180 / 200"
+c6On   = input.bool(false, "Enabled", group = g6)
+c6A    = input.int(180, "Fast", minval = 1, inline = "6len", group = g6)
+c6B    = input.int(200, "Slow", minval = 1, inline = "6len", group = g6)
+c6Up   = input.color(#64748b, "Up", inline = "6col", group = g6)
+c6Dn   = input.color(#64748b, "Down", inline = "6col", group = g6)
+c6Tr   = input.int(20, "Transparency", minval = 0, maxval = 100, group = g6)
+
+// ── Optional extra thickness on the 8/9 cloud ────────────────────────────────
+gT   = "8/9 extra thickness"
+padMode = input.string("None", "Expand cloud by", options = ["None", "ATR", "Percent"], group = gT,
+     tooltip = "The cloud stack already carries the surface area, so this is off by default. " +
+               "Turn it on to fatten the 8/9 band itself beyond the true EMA spread.")
+expandDir = input.string("Auto (trend)", "Expand direction",
      options = ["Auto (trend)", "Down only", "Up only", "Both"], group = gT,
-     tooltip = "Auto flips the thickness with the trend: while the 8 is above the 9 the padding hangs " +
-               "below the EMA (support underneath price), and while the 8 is below the 9 it stacks " +
-               "above the EMA (resistance overhead). The other options pin it to one side.")
-flipBars   = input.int(3, "Flip smoothing (bars)", minval = 1, group = gT,
-     tooltip = "Auto only: how many bars the cloud takes to migrate from one side of the EMA to the " +
-               "other on a trend flip. 1 = snap instantly.")
+     tooltip = "Auto pads below the EMA while the 8 is above the 9, and above it while the 8 is below.")
+flipBars = input.int(3, "Flip smoothing (bars)", minval = 1, group = gT)
 atrLen   = input.int(14, "ATR length", minval = 1, group = gT)
 atrMult  = input.float(0.25, "ATR multiple", minval = 0.0, step = 0.05, group = gT)
 pctWidth = input.float(0.10, "Percent of price", minval = 0.0, step = 0.01, group = gT)
 
-// ── Style ────────────────────────────────────────────────────────────────────
-gS       = "Style"
-bullCol  = input.color(#26a69a, "Bullish", inline = "col", group = gS)
-bearCol  = input.color(#ef5350, "Bearish", inline = "col", group = gS)
-fillTr   = input.int(80, "Cloud transparency", minval = 0, maxval = 100, group = gS)
-edgeTr   = input.int(35, "Edge transparency",  minval = 0, maxval = 100, group = gS)
-showEmas = input.bool(false, "Show raw 8 / 9 EMA lines", group = gS)
-colorBar = input.bool(false, "Color bars with the cloud", group = gS)
-
-// ── Calculation ──────────────────────────────────────────────────────────────
+// ── Data ─────────────────────────────────────────────────────────────────────
 htf = tf == "" ? timeframe.period : tf
 
-[fastRaw, slowRaw, atrRaw] = request.security(syminfo.tickerid, htf,
-     [ta.ema(src, fastLen), ta.ema(src, slowLen), ta.atr(atrLen)],
+[e1a, e1b, e2a, e2b, e3a, e3b, e4a, e4b, e5a, e5b, e6a, e6b, atrRaw] =
+     request.security(syminfo.tickerid, htf,
+     [ta.ema(src, c1A), ta.ema(src, c1B), ta.ema(src, c2A), ta.ema(src, c2B),
+      ta.ema(src, c3A), ta.ema(src, c3B), ta.ema(src, c4A), ta.ema(src, c4B),
+      ta.ema(src, c5A), ta.ema(src, c5B), ta.ema(src, c6A), ta.ema(src, c6B),
+      ta.atr(atrLen)],
      gaps = barmerge.gaps_off, lookahead = barmerge.lookahead_off)
 
+bull = e1a > e1b
+base = bull ? c1Up : c1Dn
+
+// Optional padding on the 8/9 band only.
 pad = switch padMode
     "ATR"     => nz(atrRaw) * atrMult
     "Percent" => close * pctWidth / 100.0
     => 0.0
 
-bull = fastRaw > slowRaw
-base = bull ? bullCol : bearCol
-
-// Weight of the padding that sits below the EMA: 1 in an uptrend, 0 in a
-// downtrend, easing across the flip so the cloud migrates instead of jumping.
 sideRaw = bull ? 1.0 : 0.0
 sideEma = ta.ema(sideRaw, flipBars)
 wDown   = flipBars <= 1 ? sideRaw : sideEma
@@ -83,26 +132,50 @@ padUp = switch expandDir
     "Both"         => pad
     => 0.0
 
-top = math.max(fastRaw, slowRaw) + padUp
-bot = math.min(fastRaw, slowRaw) - padDown
+// ── Plots (slowest first so the fast clouds paint on top) ────────────────────
+c6col = color.new(e6a > e6b ? c6Up : c6Dn, c6Tr)
+p6a = plot(c6On ? math.max(e6a, e6b) : na, "180/200 top", color = c6col)
+p6b = plot(c6On ? math.min(e6a, e6b) : na, "180/200 bottom", color = c6col)
+fill(p6a, p6b, color = c6col, title = "Cloud 180/200")
 
-// ── Plots ────────────────────────────────────────────────────────────────────
-pTop = plot(top, "Cloud top",    color = color.new(base, edgeTr), linewidth = 1)
-pBot = plot(bot, "Cloud bottom", color = color.new(base, edgeTr), linewidth = 1)
-fill(pTop, pBot, color = color.new(base, fillTr), title = "Cloud")
+c5col = color.new(e5a > e5b ? c5Up : c5Dn, c5Tr)
+p5a = plot(c5On ? math.max(e5a, e5b) : na, "72/89 top", color = c5col)
+p5b = plot(c5On ? math.min(e5a, e5b) : na, "72/89 bottom", color = c5col)
+fill(p5a, p5b, color = c5col, title = "Cloud 72/89")
 
-plot(showEmas ? fastRaw : na, "8 EMA", color = color.new(base, 0),  linewidth = 1)
-plot(showEmas ? slowRaw : na, "9 EMA", color = color.new(base, 55), linewidth = 1)
+c4col = color.new(e4a > e4b ? c4Up : c4Dn, c4Tr)
+p4a = plot(c4On ? math.max(e4a, e4b) : na, "34/50 top", color = c4col)
+p4b = plot(c4On ? math.min(e4a, e4b) : na, "34/50 bottom", color = c4col)
+fill(p4a, p4b, color = c4col, title = "Cloud 34/50")
 
-barcolor(colorBar ? base : na)
+c3col = color.new(e3a > e3b ? c3Up : c3Dn, c3Tr)
+p3a = plot(c3On ? math.max(e3a, e3b) : na, "20/21 top", color = c3col)
+p3b = plot(c3On ? math.min(e3a, e3b) : na, "20/21 bottom", color = c3col)
+fill(p3a, p3b, color = c3col, title = "Cloud 20/21")
 
-// ── State & alerts ───────────────────────────────────────────────────────────
-crossUp    = ta.crossover(fastRaw, slowRaw)
-crossDn    = ta.crossunder(fastRaw, slowRaw)
-closeAbove = ta.crossover(close, top)
-closeBelow = ta.crossunder(close, bot)
+c2col = color.new(e2a > e2b ? c2Up : c2Dn, c2Tr)
+p2a = plot(c2On ? math.max(e2a, e2b) : na, "5/12 top", color = c2col)
+p2b = plot(c2On ? math.min(e2a, e2b) : na, "5/12 bottom", color = c2col)
+fill(p2a, p2b, color = c2col, title = "Cloud 5/12")
 
-alertcondition(crossUp,    "Cloud turns bullish", "8 EMA crossed above the 9 EMA — cloud flipped green")
-alertcondition(crossDn,    "Cloud turns bearish", "8 EMA crossed below the 9 EMA — cloud flipped red")
-alertcondition(closeAbove, "Price above cloud",   "Price closed above the 8 EMA cloud")
-alertcondition(closeBelow, "Price below cloud",   "Price closed below the 8 EMA cloud")
+cloudTop = math.max(e1a, e1b) + padUp
+cloudBot = math.min(e1a, e1b) - padDown
+c1col = color.new(base, c1Tr)
+p1a = plot(c1On ? cloudTop : na, "8/9 top", color = c1col)
+p1b = plot(c1On ? cloudBot : na, "8/9 bottom", color = c1col)
+fill(p1a, p1b, color = c1col, title = "Cloud 8/9")
+
+plot(showEmas ? e1a : na, "8 EMA", color = color.new(base, 0),  linewidth = 1)
+plot(showEmas ? e1b : na, "9 EMA", color = color.new(base, 55), linewidth = 1)
+
+barcolor(colorBars ? base : na)
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+alertcondition(ta.crossover(e1a, e1b),  "8/9 turns bullish", "8 EMA crossed above the 9 EMA")
+alertcondition(ta.crossunder(e1a, e1b), "8/9 turns bearish", "8 EMA crossed below the 9 EMA")
+alertcondition(ta.crossover(close, cloudTop),  "Price above 8/9 cloud", "Price closed above the 8/9 cloud")
+alertcondition(ta.crossunder(close, cloudBot), "Price below 8/9 cloud", "Price closed below the 8/9 cloud")
+alertcondition(ta.crossover(math.min(e1a, e1b), math.max(e4a, e4b)),
+     "8/9 cloud above trend cloud", "The 8/9 cloud pushed above the 34/50 cloud")
+alertcondition(ta.crossunder(math.max(e1a, e1b), math.min(e4a, e4b)),
+     "8/9 cloud below trend cloud", "The 8/9 cloud dropped below the 34/50 cloud")

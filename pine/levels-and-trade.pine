@@ -1,0 +1,186 @@
+//@version=6
+// =============================================================================
+// Session Levels & Trade Markers
+// -----------------------------------------------------------------------------
+// The companion to "8 EMA Cloud System". Two independent modules:
+//
+//   Levels  — premarket high/low (PMH/PML) and previous day high/low (PDH/PDL),
+//             drawn as horizontal lines that run to the right of price with a
+//             text tag at the end.
+//
+//   Trade   — an (E) entry marker when price pulls back into the 8/9 cloud and
+//             closes back out of it in the direction of the trend, plus a dotted
+//             trailing stop that ratchets along under (or over) the cloud and
+//             prints "SL: <price>" at its current level.
+//
+// Both modules can be switched off independently.
+// =============================================================================
+
+indicator("Session Levels & Trade Markers", shorttitle = "Levels + Trade", overlay = true,
+     max_lines_count = 500, max_labels_count = 500)
+
+// ── Levels ───────────────────────────────────────────────────────────────────
+gL       = "Levels"
+showPM   = input.bool(true, "Premarket high / low (PMH, PML)", group = gL)
+showPD   = input.bool(true, "Previous day high / low (PDH, PDL)", group = gL)
+pmSess   = input.session("0400-0930", "Premarket session", group = gL)
+tzName   = input.string("America/New_York", "Session timezone", group = gL)
+rightOff = input.int(12, "Extend levels right (bars)", minval = 0, maxval = 400, group = gL)
+pmhCol   = input.color(#22c55e, "PMH", inline = "lv1", group = gL)
+pmlCol   = input.color(#ef4444, "PML", inline = "lv1", group = gL)
+pdhCol   = input.color(#4ade80, "PDH", inline = "lv2", group = gL)
+pdlCol   = input.color(#f87171, "PDL", inline = "lv2", group = gL)
+
+// ── Trade markers ────────────────────────────────────────────────────────────
+gM       = "Trade markers"
+showTrade = input.bool(true, "Show entries and trailing stop", group = gM)
+doLong    = input.bool(true, "Longs",  inline = "dir", group = gM)
+doShort   = input.bool(true, "Shorts", inline = "dir", group = gM)
+fastLen   = input.int(8, "Cloud fast EMA", minval = 1, inline = "mlen", group = gM)
+slowLen   = input.int(9, "Cloud slow EMA", minval = 1, inline = "mlen", group = gM)
+useFilter = input.bool(true, "Only trade with the trend cloud", group = gM,
+     tooltip = "Longs only while the 8/9 cloud is above the 34/50 cloud, shorts only while it is below.")
+filtA     = input.int(34, "Trend cloud fast", minval = 1, inline = "flen", group = gM)
+filtB     = input.int(50, "Trend cloud slow", minval = 1, inline = "flen", group = gM)
+slAtrLen  = input.int(14, "ATR length", minval = 1, group = gM)
+slBuf     = input.float(0.25, "Stop buffer (ATR multiple)", minval = 0.0, step = 0.05, group = gM,
+     tooltip = "How far beyond the cloud the trailing stop sits. Bigger = more room, fewer stop-outs.")
+entryCol  = input.color(#22c55e, "Entry", inline = "mcol", group = gM)
+stopCol   = input.color(#ef4444, "Stop",  inline = "mcol", group = gM)
+
+// ── Session level tracking ───────────────────────────────────────────────────
+nyDay  = dayofmonth(time, tzName)
+newDay = nyDay != nyDay[1]
+
+var int dayStart = 0
+if newDay
+    dayStart := bar_index
+
+inPre = not na(time(timeframe.period, pmSess, tzName))
+
+var float pmh = na
+var float pml = na
+if newDay
+    pmh := na
+    pml := na
+if inPre
+    pmh := na(pmh) ? high : math.max(pmh, high)
+    pml := na(pml) ? low  : math.min(pml, low)
+
+[pdh, pdl] = request.security(syminfo.tickerid, "D", [high[1], low[1]],
+     lookahead = barmerge.lookahead_on)
+
+// ── Draw the levels (redrawn on the last bar only) ───────────────────────────
+transparent = color.new(color.black, 100)
+
+var line  pmhLn = na
+var label pmhLb = na
+var line  pmlLn = na
+var label pmlLb = na
+var line  pdhLn = na
+var label pdhLb = na
+var line  pdlLn = na
+var label pdlLb = na
+
+if barstate.islast
+    lastX = bar_index + rightOff
+
+    line.delete(pmhLn)
+    label.delete(pmhLb)
+    if showPM and not na(pmh)
+        pmhLn := line.new(dayStart, pmh, lastX, pmh, xloc.bar_index, extend.none, pmhCol, line.style_dotted, 1)
+        pmhLb := label.new(lastX, pmh, "PMH", xloc.bar_index, yloc.price, transparent, label.style_label_left, pmhCol, size.small)
+
+    line.delete(pmlLn)
+    label.delete(pmlLb)
+    if showPM and not na(pml)
+        pmlLn := line.new(dayStart, pml, lastX, pml, xloc.bar_index, extend.none, pmlCol, line.style_dotted, 1)
+        pmlLb := label.new(lastX, pml, "PML", xloc.bar_index, yloc.price, transparent, label.style_label_left, pmlCol, size.small)
+
+    line.delete(pdhLn)
+    label.delete(pdhLb)
+    if showPD and not na(pdh)
+        pdhLn := line.new(dayStart, pdh, lastX, pdh, xloc.bar_index, extend.none, pdhCol, line.style_solid, 1)
+        pdhLb := label.new(lastX, pdh, "PDH", xloc.bar_index, yloc.price, transparent, label.style_label_left, pdhCol, size.small)
+
+    line.delete(pdlLn)
+    label.delete(pdlLb)
+    if showPD and not na(pdl)
+        pdlLn := line.new(dayStart, pdl, lastX, pdl, xloc.bar_index, extend.none, pdlCol, line.style_solid, 1)
+        pdlLb := label.new(lastX, pdl, "PDL", xloc.bar_index, yloc.price, transparent, label.style_label_left, pdlCol, size.small)
+
+// ── Entry logic ──────────────────────────────────────────────────────────────
+ef   = ta.ema(close, fastLen)
+es   = ta.ema(close, slowLen)
+top  = math.max(ef, es)
+bot  = math.min(ef, es)
+bull = ef > es
+
+tf1  = ta.ema(close, filtA)
+tf2  = ta.ema(close, filtB)
+trendUp = not useFilter or bot > math.max(tf1, tf2)
+trendDn = not useFilter or top < math.min(tf1, tf2)
+
+atr = ta.atr(slAtrLen)
+buf = atr * slBuf
+
+// Pullback into the cloud that closes back out of it, in the trend direction.
+longSetup  = showTrade and doLong  and bull     and low  <= top and close > top and close > open and trendUp
+shortSetup = showTrade and doShort and not bull and high >= bot and close < bot and close < open and trendDn
+
+var int   pos   = 0     // 1 long, -1 short, 0 flat
+var float trail = na
+
+longEntry  = false
+shortEntry = false
+longExit   = false
+shortExit  = false
+
+if pos == 1
+    trail := math.max(nz(trail, bot - buf), bot - buf)
+    if close < trail
+        longExit := true
+        pos := 0
+else if pos == -1
+    trail := math.min(nz(trail, top + buf), top + buf)
+    if close > trail
+        shortExit := true
+        pos := 0
+
+if pos == 0 and longSetup and not longExit and not shortExit
+    pos := 1
+    trail := math.min(low, nz(low[1], low)) - buf
+    longEntry := true
+else if pos == 0 and shortSetup and not longExit and not shortExit
+    pos := -1
+    trail := math.max(high, nz(high[1], high)) + buf
+    shortEntry := true
+
+if pos == 0 and not longEntry and not shortEntry
+    trail := na
+
+// ── Draw the entries and the trailing stop ───────────────────────────────────
+plotshape(longEntry,  "Long entry",  shape.triangleup,   location.belowbar, entryCol, size = size.tiny)
+plotshape(shortEntry, "Short entry", shape.triangledown, location.abovebar, stopCol,  size = size.tiny)
+
+if longEntry
+    label.new(bar_index, low, "(E)", xloc.bar_index, yloc.belowbar, entryCol,
+         label.style_label_up, color.white, size.small)
+if shortEntry
+    label.new(bar_index, high, "(E)", xloc.bar_index, yloc.abovebar, stopCol,
+         label.style_label_down, color.white, size.small)
+
+plot(pos != 0 ? trail : na, "Trailing stop", color = stopCol, style = plot.style_circles, linewidth = 1)
+
+var label slLb = na
+if barstate.islast
+    label.delete(slLb)
+    if pos != 0
+        slLb := label.new(bar_index + 3, trail, "SL: " + str.tostring(trail, format.mintick),
+             xloc.bar_index, yloc.price, transparent, label.style_label_left, stopCol, size.small)
+
+// ── Alerts ───────────────────────────────────────────────────────────────────
+alertcondition(longEntry,  "Long entry",  "Long entry — price closed back above the 8/9 cloud")
+alertcondition(shortEntry, "Short entry", "Short entry — price closed back below the 8/9 cloud")
+alertcondition(longExit,   "Long stopped out",  "Long trailing stop hit")
+alertcondition(shortExit,  "Short stopped out", "Short trailing stop hit")
