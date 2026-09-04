@@ -1,0 +1,640 @@
+<title>Leadership Tape</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Sans+3:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#ECEEF1; --surface:#FFFFFF; --surface2:#F4F6F8; --band:#E3E7EC;
+  --ink:#10151C; --ink2:#3D4753; --muted:#6B7684; --line:#D6DBE2; --line-soft:#E4E8ED;
+  --accent:#8F5E0F; --accent2:#B98A2E;
+  --t1:#6E7C8B; --t2:#A97C2B; --t3:#BC5C28; --t4:#9A281B;
+  --focus:#2F6FB0;
+  --f-display:'Archivo','Helvetica Neue',Arial,sans-serif;
+  --f-body:'Source Sans 3','Helvetica Neue',Arial,sans-serif;
+  --f-mono:'IBM Plex Mono','SFMono-Regular',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0C0F14; --surface:#13171D; --surface2:#191E25; --band:#1B212A;
+    --ink:#E7EAEE; --ink2:#B4BCC6; --muted:#7E8A98; --line:#262D36; --line-soft:#1E242C;
+    --accent:#E2AC4A; --accent2:#C08F32;
+    --t1:#8A96A4; --t2:#D8A63F; --t3:#E07B3C; --t4:#D9503C;
+    --focus:#6BA8E8;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0C0F14; --surface:#13171D; --surface2:#191E25; --band:#1B212A;
+  --ink:#E7EAEE; --ink2:#B4BCC6; --muted:#7E8A98; --line:#262D36; --line-soft:#1E242C;
+  --accent:#E2AC4A; --accent2:#C08F32;
+  --t1:#8A96A4; --t2:#D8A63F; --t3:#E07B3C; --t4:#D9503C;
+  --focus:#6BA8E8;
+}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px 96px}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:3px}
+
+/* ---------- masthead ---------- */
+.mast{padding:44px 0 26px;border-bottom:1px solid var(--line)}
+.kicker{font-family:var(--f-mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--accent);margin:0 0 14px}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(38px,6.2vw,68px);line-height:.98;letter-spacing:-.025em;margin:0;text-wrap:balance}
+.dek{font-size:18px;color:var(--ink2);max-width:60ch;margin:16px 0 0}
+.mast-stats{display:flex;flex-wrap:wrap;gap:0;margin-top:28px;border:1px solid var(--line);background:var(--surface);border-radius:2px}
+.stat{flex:1 1 140px;padding:14px 18px;border-right:1px solid var(--line-soft)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-family:var(--f-mono);font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.stat span{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted)}
+
+/* ---------- controls ---------- */
+.controls{position:sticky;top:0;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:8px}
+.ctl-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+#q{flex:1 1 240px;min-width:200px;font-family:var(--f-mono);font-size:14px;padding:9px 12px;background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:2px}
+#q::placeholder{color:var(--muted)}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:var(--surface)}
+.seg button{font-family:var(--f-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;padding:9px 11px;background:transparent;color:var(--muted);border:0;border-right:1px solid var(--line-soft);cursor:pointer}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--band);color:var(--ink)}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.chip{font-family:var(--f-mono);font-size:11px;letter-spacing:.04em;padding:5px 9px;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;cursor:pointer}
+.chip[aria-pressed="true"]{border-color:var(--accent);color:var(--ink);background:var(--band)}
+.count{font-family:var(--f-mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:10px}
+
+/* ---------- cycle ---------- */
+.cycle{margin-top:46px;scroll-margin-top:120px}
+.cycle-head{display:grid;grid-template-columns:170px 1fr;gap:24px;align-items:start;border-top:2px solid var(--ink);padding-top:16px}
+.yrs{font-family:var(--f-display);font-weight:800;font-size:34px;line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.yrs small{display:block;font-family:var(--f-mono);font-weight:500;font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-top:8px}
+.cycle-name{font-family:var(--f-display);font-weight:700;font-size:22px;letter-spacing:-.01em;margin:0 0 6px;text-wrap:balance}
+.regime{color:var(--ink2);margin:0;max-width:70ch}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft);margin-top:16px}
+.fact{background:var(--surface);padding:11px 13px}
+.fact span{display:block;font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.fact p{margin:0;font-size:14.5px;color:var(--ink2)}
+
+/* ---------- rows ---------- */
+.tbl{margin-top:18px;border:1px solid var(--line);background:var(--surface)}
+.thead,.row{display:grid;grid-template-columns:78px minmax(150px,1.3fr) 132px 116px 118px minmax(200px,2fr);gap:14px;align-items:center;padding:9px 14px}
+.thead{font-family:var(--f-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);background:var(--surface2);border-bottom:1px solid var(--line)}
+.row{border-bottom:1px solid var(--line-soft);font-size:14.5px}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--surface2)}
+.tk{font-family:var(--f-mono);font-weight:600;font-size:14px;letter-spacing:.02em}
+.co{color:var(--ink2);font-size:14px}
+.th{font-family:var(--f-mono);font-size:11px;letter-spacing:.03em;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wd{font-family:var(--f-mono);font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.mv{font-family:var(--f-mono);font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;white-space:nowrap}
+.bar{height:3px;background:var(--line-soft);margin-top:5px;border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;border-radius:2px}
+.nt{color:var(--muted);font-size:13.5px;line-height:1.45}
+.t1 .mv{color:var(--t1)} .t1 .bar i{background:var(--t1);width:25%}
+.t2 .mv{color:var(--t2)} .t2 .bar i{background:var(--t2);width:52%}
+.t3 .mv{color:var(--t3)} .t3 .bar i{background:var(--t3);width:76%}
+.t4 .mv{color:var(--t4)} .t4 .bar i{background:var(--t4);width:100%}
+.empty{padding:22px 14px;color:var(--muted);font-family:var(--f-mono);font-size:12.5px}
+.hide{display:none}
+
+/* ---------- closing ---------- */
+.pattern{margin-top:66px;border-top:2px solid var(--ink);padding-top:22px}
+.pattern h2,.notes h2{font-family:var(--f-display);font-weight:800;font-size:30px;letter-spacing:-.02em;margin:0 0 6px}
+.lede{color:var(--ink2);max-width:66ch;margin:0 0 22px}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1px;background:var(--line-soft);border:1px solid var(--line-soft)}
+.rule{background:var(--surface);padding:18px}
+.rule h3{font-family:var(--f-display);font-weight:700;font-size:16.5px;margin:0 0 7px;letter-spacing:-.005em}
+.rule p{margin:0;font-size:14.5px;color:var(--ink2)}
+.rule p+p{margin-top:8px;color:var(--muted);font-size:13.5px}
+.rule code{font-family:var(--f-mono);font-size:12.5px;color:var(--accent)}
+.notes{margin-top:52px;border-top:1px solid var(--line);padding-top:22px}
+.notes p{color:var(--muted);font-size:14px;max-width:78ch}
+.notes ul{color:var(--muted);font-size:14px;max-width:78ch;padding-left:18px}
+.notes li{margin-bottom:5px}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin:14px 0 20px;font-family:var(--f-mono);font-size:11.5px;color:var(--muted)}
+.legend b{display:inline-block;width:26px;height:3px;border-radius:2px;vertical-align:middle;margin-right:7px}
+
+@media (max-width:920px){
+  .thead{display:none}
+  .row{grid-template-columns:72px 1fr;grid-template-areas:"tk co" "tk th" "wd mv" "nt nt";gap:4px 12px;padding:12px 14px;align-items:start}
+  .row .tk{grid-area:tk} .row .co{grid-area:co} .row .th{grid-area:th}
+  .row .wd{grid-area:wd} .row .mvcell{grid-area:mv} .row .nt{grid-area:nt;margin-top:6px}
+  .cycle-head{grid-template-columns:1fr;gap:12px}
+  .thead{position:static}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+
+<div class="wrap">
+
+<header class="mast">
+  <p class="kicker">US equities · 2016 &ndash; 2026 · liquid names only</p>
+  <h1>Leadership Tape</h1>
+  <p class="dek">Every liquid market leader of the last ten years, grouped by the cycle that made it. Not a buy list &mdash; a study list. Pull the weekly chart on each one, mark the base before the move, and find the day the volume changed.</p>
+  <div class="mast-stats">
+    <div class="stat"><b id="s-count">0</b><span>Names</span></div>
+    <div class="stat"><b>10</b><span>Cycles</span></div>
+    <div class="stat"><b id="s-themes">0</b><span>Themes</span></div>
+    <div class="stat"><b>2016</b><span>First cycle</span></div>
+    <div class="stat"><b>2026</b><span>Live cycle</span></div>
+  </div>
+</header>
+
+<div class="controls">
+  <div class="ctl-row">
+    <input id="q" type="search" placeholder="Filter by ticker, company, theme, or note&hellip;" aria-label="Filter names">
+    <div class="seg" role="group" aria-label="Filter by size of move">
+      <button data-tier="all" aria-pressed="true">All moves</button>
+      <button data-tier="2" aria-pressed="false">150%+</button>
+      <button data-tier="3" aria-pressed="false">400%+</button>
+      <button data-tier="4" aria-pressed="false">1000%+</button>
+    </div>
+    <div class="seg" role="group" aria-label="Theme">
+      <button id="clear" aria-pressed="false">Reset</button>
+    </div>
+  </div>
+  <div class="chips" id="themechips"></div>
+  <div class="count" id="count"></div>
+</div>
+
+<main id="list"></main>
+
+<section class="pattern">
+  <h2>What every one of these had in common</h2>
+  <p class="lede">Ten years, ten cycles, roughly two hundred names. The themes never repeat exactly, but the anatomy does. This is the part worth memorizing &mdash; the list above is just evidence for it.</p>
+  <div class="rules">
+    <div class="rule">
+      <h3>A new demand curve, not a cheap valuation</h3>
+      <p>Not one name on this list led because it was undervalued. Each one sat in front of demand that did not exist two years earlier: GPUs for training, HBM for inference, gigawatts for data centers, NAND for storage, uranium for reactors, magnets outside China.</p>
+      <p>Screening for cheap gets you 2022 energy. Screening for new demand gets you the other nine cycles.</p>
+    </div>
+    <div class="rule">
+      <h3>Earnings acceleration separates the long runs from the fast ones</h3>
+      <p>NVDA, SMCI, MU, APP, PLTR, VST and CVNA all delivered accelerating revenue and EPS <em>while</em> the stock ran. Those moves lasted quarters to years and gave you multiple entries.</p>
+      <p>QBTS, LFIN, DWAC, SBET, GME and the 2018 cannabis complex had no earnings at all. Those moves lasted days to weeks and gave you one entry with no second chance.</p>
+    </div>
+    <div class="rule">
+      <h3>Small float and short interest buy velocity, not durability</h3>
+      <p>Float is a multiplier on whatever the fundamentals already are. TLRY in 2018, GME in 2021, BYND in 2019 and the 2025 crypto-treasury names were float mechanics with a story attached &mdash; they went vertical and gave it all back.</p>
+      <p><code>Tight float + real earnings</code> is the rarest and best combination on this page: SMCI 2023, APP 2024, CRDO 2024.</p>
+    </div>
+    <div class="rule">
+      <h3>Somebody real validates the theme first</h3>
+      <p>The move usually starts on an outside stamp, not a press release. Constellation's stake in CGC. Nvidia's first guidance raise in May 2023. The DoD taking equity in MP in July 2025. Cipher's 15-year AWS lease. Oracle's RPO disclosure. AMD's OpenAI agreement.</p>
+      <p>Watch for the counterparty, not the company.</p>
+    </div>
+    <div class="rule">
+      <h3>Leaders travel in groups of three to eight</h3>
+      <p>Memory was never just MU &mdash; it was MU, WDC, STX, SNDK. Power was never just VST &mdash; it was VST, CEG, TLN, NRG, GEV, BE. Quantum was IONQ, RGTI, QBTS, QUBT.</p>
+      <p>If you cannot name three, you do not have a theme. You have one stock and a story.</p>
+    </div>
+    <div class="rule">
+      <h3>Sectors lead more than once &mdash; and rhyme when they do</h3>
+      <p>Memory led 2016&ndash;17, again in 2024, and is leading the tape right now in 2026. Solar led 2019&ndash;20 and again in 2022. Nuclear led 2024 and 2025. Crypto proxies led Q4 2017, Q1 and Q4 2021, 2023, 2024 and 2025.</p>
+      <p>Every prior leg is a free template for the next one. Study the 2016 Micron chart before you trade the 2026 one.</p>
+    </div>
+    <div class="rule">
+      <h3>The endings look identical</h3>
+      <p>Acceleration into a near-vertical slope. An exhaustion gap on the highest volume of the entire move. A wide-range reversal bar. Then the first weekly close below the 21-week line that does not get bought back.</p>
+      <p>SMCI in March 2024, TLRY in September 2018, LFIN in December 2017, PTON in January 2021, ENPH in 2021. Same shape every time.</p>
+    </div>
+    <div class="rule">
+      <h3>The last name up is the tell</h3>
+      <p>When the junk in a group starts outrunning the leader, the cycle is late. LFIN going 26x with no business marked the top of the 2017 crypto move. NKLA and the 2020 SPACs marked the top of the EV move. The 2025 crypto-treasury shells marked the top of that trade.</p>
+      <p>Ask what quality of name is making the biggest move today. That answer dates the cycle better than any indicator.</p>
+    </div>
+  </div>
+</section>
+
+<section class="notes">
+  <h2>How to read this, and what it is not</h2>
+  <div class="legend">
+    <span><b style="background:var(--t1)"></b>~50&ndash;150%</span>
+    <span><b style="background:var(--t2)"></b>~150&ndash;400%</span>
+    <span><b style="background:var(--t3)"></b>~400&ndash;1000%</span>
+    <span><b style="background:var(--t4)"></b>1000%+</span>
+  </div>
+  <ul>
+    <li><strong>Percentages are approximate and rounded.</strong> They describe the size of the leadership move over the window shown &mdash; sometimes a calendar year, sometimes a base-to-peak run that crosses years. Treat them as magnitude buckets, not as data you would backtest on. Pull the actual chart before you conclude anything.</li>
+    <li><strong>2024, 2025 and 2026 figures are the most reliable</strong> &mdash; those were checked against published year-end and year-to-date performance rankings. Figures from 2016&ndash;2023 come from the historical record and carry more rounding error.</li>
+    <li><strong>&ldquo;Liquid&rdquo; here means it traded with real institutional participation at the time of the move.</strong> A handful of names were small caps that became liquid <em>because</em> of the move (TSSI, ONDS, LFIN). Those are marked in the notes and should be studied as float mechanics, not as investments.</li>
+    <li><strong>Survivorship is deliberate.</strong> This is a list of what led, which means it is also a list of names that mostly gave large portions of it back. LFIN was delisted. SMCI fell about 70% from its 2024 high. PTON, ENPH, UPST and most of the 2021 complex are down 80&ndash;95% from their peaks. Leadership is a phase, not an identity.</li>
+    <li><strong>No prices, no targets, no recommendations.</strong> Nothing here is investment advice.</li>
+  </ul>
+</section>
+
+</div>
+
+<script>
+const C = [
+ {y:"2016&ndash;17", tag:"Cycle 01", n:"Reflation, the first semi cycle, and the crypto mania",
+  r:"Post-election reflation plus the first real data-center semiconductor cycle. Leadership was narrow, technical, and concentrated in silicon and China internet &mdash; then Q4 2017 detonated the first crypto-proxy mania.",
+  f:[["What drove it","Cloud capex, GPU compute, a DRAM shortage, and China internet ad spend"],["Where it started","Feb 2016 low, off a semiconductor washout"],["How it ended","Jan 2018 melt-up into the Feb 2018 volatility shock"]],
+  d:[
+  ["NVDA","NVIDIA","Semis / GPU","2016","~+225%",3,"Pascal launch plus the first data-center revenue inflection. The template every AI leader since has copied."],
+  ["AMD","Advanced Micro Devices","Semis","2016","~+295%",3,"Left-for-dead reversal off roughly $1.75. Zen was the product cycle."],
+  ["MU","Micron","Memory","2016&ndash;17","~+230%",3,"First modern DRAM/NAND supercycle. The exact playbook that repeats in 2024 and again in 2026."],
+  ["LRCX","Lam Research","Semi equipment","2016&ndash;17","~+180%",2,"Picks-and-shovels leg of the memory cycle."],
+  ["AMAT","Applied Materials","Semi equipment","2016&ndash;17","~+150%",2,"Same trade, larger cap, smoother chart."],
+  ["SHOP","Shopify","Commerce software","2016&ndash;17","~+230%",2,"Merchant growth compounding at 70%+ with no comparable public peer."],
+  ["SQ","Square (Block)","Fintech","2017","~+150%",2,"Seller GPV plus the Cash App optionality nobody had modeled yet."],
+  ["TTD","The Trade Desk","Adtech","2016&ndash;17","~+180%",2,"Post-IPO base-and-run. Profitable from day one, which was rare in the class."],
+  ["BZUN","Baozun","China e-commerce","2017","~+480%",3,"Highest-beta expression of the 2017 China internet trade."],
+  ["WB","Weibo","China internet","2017","~+150%",2,"Ad revenue acceleration off a small base."],
+  ["BABA","Alibaba","China internet","2017","~+96%",1,"The liquid, institutional way to own the theme."],
+  ["YY","JOYY","China internet","2017","~+150%",2,"Live-streaming monetization."],
+  ["NFLX","Netflix","Streaming","2016&ndash;17","~+55%",1,"The FANG anchor. Subscriber growth was the only number that mattered."],
+  ["META","Facebook","Internet","2016&ndash;17","~+55%",1,"Mobile ad load and Instagram scaling."],
+  ["AMZN","Amazon","E-commerce / cloud","2016&ndash;17","~+80%",1,"AWS margin disclosure re-rated the whole company."],
+  ["RIOT","Riot Blockchain","Crypto proxy","Q4 2017","~+1,500%",4,"Renamed from a biotech shell in October. The purest float-and-story move of the era."],
+  ["MARA","Marathon Patent","Crypto proxy","Q4 2017","~+1,000%+",4,"Same setup, same mechanics, same round trip."],
+  ["OSTK","Overstock","Crypto proxy","Q3&ndash;Q4 2017","~+900%",3,"An actual business that bolted a blockchain story onto itself and got repriced."],
+  ["GBTC","Grayscale Bitcoin Trust","Crypto proxy","2017","~+1,500%",4,"Traded to a 100%+ premium to NAV. The premium itself was the mania gauge."],
+  ["LFIN","Longfin","Crypto proxy","Dec 2017","~+2,600% in days",4,"Went 26x in five sessions with essentially no business. Delisted in 2019. This was the top marker."]
+ ]},
+
+ {y:"2018", tag:"Cycle 02", n:"Late-cycle blowoff, cannabis mania, first vol shock",
+  r:"A two-shock year: the February volatility unwind and the October&ndash;December growth breakdown. Between them, software kept working and cannabis produced the cleanest parabolic mania since 1999.",
+  f:[["What drove it","Legalization headlines, SaaS gross-margin re-rating, and a still-tightening Fed"],["Where it started","Feb 2018 lows, then a summer growth run"],["How it ended","Sept 2018 cannabis exhaustion, then a Q4 growth collapse"]],
+  d:[
+  ["TLRY","Tilray","Cannabis","Jul&ndash;Sep 2018","~+800% from IPO",3,"Halted five times on Sept 19. Tiny float, no borrow, no earnings. Study this chart for what a top looks like."],
+  ["CGC","Canopy Growth","Cannabis","2018","~+300%",2,"Constellation Brands' $4B stake was the institutional stamp that ran the entire group."],
+  ["CRON","Cronos Group","Cannabis","2018","~+300%",2,"Altria took a stake in December. Same validation mechanic, later in the cycle."],
+  ["ACB","Aurora Cannabis","Cannabis","2018","~+150%",2,"Volume leader of the group; the retail vehicle."],
+  ["APHA","Aphria","Cannabis","2018","~+140%",1,"Ran with the group, then broke first on a short report."],
+  ["TWLO","Twilio","Software","2018","~+275%",2,"Best software chart of the year. Usage-based revenue accelerating through 60%+."],
+  ["ETSY","Etsy","E-commerce","2018","~+130%",2,"Take-rate increase dropped straight to the bottom line."],
+  ["OKTA","Okta","Software","2018","~+90%",1,"Identity as the first budget line in cloud migration."],
+  ["ABMD","Abiomed","Medtech","Jan&ndash;Oct 2018","~+90%",1,"Best medtech chart of the cycle before the Q4 unwind."],
+  ["AMD","Advanced Micro Devices","Semis","Jan&ndash;Sep 2018","~+80%",1,"Doubled into September, then halved by year-end. The whole cycle in one chart."],
+  ["FIVE","Five Below","Retail","2018","~+70%",1,"Unit growth story that held up through the Q4 break."],
+  ["ROKU","Roku","Streaming","2018","~+70%",1,"Built the base in 2018 that produced the 2019 run."],
+  ["LULU","Lululemon","Retail","2018","~+50%",1,"Comps re-accelerating into the teens. Held relative strength all year."]
+ ]},
+
+ {y:"2019", tag:"Cycle 03", n:"The Fed pivot, SaaS, and the IPO class that became 2020",
+  r:"The Fed cut three times and growth re-rated. Solar and streaming produced the biggest full-year moves, and the IPO class of 2019 quietly became the entire leadership of 2020.",
+  f:[["What drove it","Three insurance cuts, a re-rating of unprofitable growth, and a solar cost curve crossing over"],["Where it started","Dec 2018 capitulation low"],["How it ended","It did not &mdash; it rolled directly into the COVID crash"]],
+  d:[
+  ["ENPH","Enphase Energy","Solar","2019","~+450%",3,"Microinverter margin inflection. Then +570% again in 2020 &mdash; the best two-year run of the era."],
+  ["ROKU","Roku","Streaming","2019","~+340%",2,"Platform revenue outgrew hardware and the multiple went with it."],
+  ["BYND","Beyond Meat","Consumer / IPO","May&ndash;Jul 2019","~+840% from IPO",3,"Tiny float, no borrow, vertical. The IPO supply-squeeze archetype."],
+  ["AMD","Advanced Micro Devices","Semis","2019","~+148%",2,"7nm shipped and server share started moving for real."],
+  ["SEDG","SolarEdge","Solar","2019","~+120%",1,"The larger, slower half of the solar pair trade."],
+  ["KLAC","KLA Corp","Semi equipment","2019","~+100%",1,"Process control leading the semi recovery."],
+  ["TTD","The Trade Desk","Adtech","2019","~+100%",1,"Connected TV became the growth driver."],
+  ["TGT","Target","Retail","2019","~+95%",1,"Digital comps and same-day fulfillment re-rated a value name into a growth one."],
+  ["CMG","Chipotle","Restaurants","2019","~+94%",1,"Digital mix plus throughput. A pure operating-leverage move."],
+  ["AAPL","Apple","Mega-cap tech","2019","~+86%",1,"Services multiple expansion with no unit growth. The mega-cap tell of the year."],
+  ["LULU","Lululemon","Retail","2019","~+90%",1,"Second straight year of leadership."],
+  ["INMD","InMode","Medtech / IPO","2019","~+150%",2,"Profitable small-cap IPO with 50%+ growth. Rare combination."],
+  ["TREX","Trex","Building products","2019","~+100%",1,"Composite decking share gains &mdash; the non-tech leader of the year."],
+  ["ZM","Zoom Video","Software / IPO","Apr 2019 IPO","~+70%",1,"Profitable at IPO. Set the base that produced 2020."],
+  ["CRWD","CrowdStrike","Cybersecurity / IPO","Jun 2019 IPO","~+30%",1,"Broke below the IPO price before becoming a 2020 leader."],
+  ["DDOG","Datadog","Software / IPO","Sep 2019 IPO","~+40%",1,"Best-in-class net revenue retention in the class."]
+ ]},
+
+ {y:"2020", tag:"Cycle 04", n:"COVID crash into the liquidity mania",
+  r:"The single most productive year for leadership in the decade. A 34% index crash in 23 days, then zero rates and stimulus produced the widest set of triple- and quadruple-digit moves since 1999.",
+  f:[["What drove it","Zero rates, fiscal transfers, forced digital adoption, and a retail brokerage boom"],["Where it started","March 23, 2020"],["How it ended","Feb 2021 &mdash; growth topped weeks before the index did"]],
+  d:[
+  ["TSLA","Tesla","EV","2020","~+743%",3,"Profitability, the S&P inclusion trade, and a 5-for-1 split. The defining stock of the cycle."],
+  ["NIO","NIO","EV / China","2020","~+1,100%",4,"Near-bankruptcy in Q1 to a $90B market cap by December."],
+  ["BLNK","Blink Charging","EV charging","2020","~+2,900%",4,"Almost no revenue. Pure theme beta with a microcap float."],
+  ["PLUG","Plug Power","Hydrogen","2020","~+970%",3,"Ran on a hydrogen narrative, then restated three years of financials in 2021."],
+  ["NVAX","Novavax","Biotech / COVID","2020","~+2,700%",4,"Operation Warp Speed funding on a company with no approved product."],
+  ["VXRT","Vaxart","Biotech / COVID","Jun 2020","~+2,000% intra-year",4,"Went 20x in weeks on an oral-vaccine press release."],
+  ["CODX","Co-Diagnostics","Diagnostics","H1 2020","~+1,300%",4,"First-mover PCR test. Round-tripped entirely."],
+  ["MRNA","Moderna","Biotech / COVID","2020","~+434%",3,"mRNA platform validation. The only one of the COVID names that became a real business."],
+  ["QS","QuantumScape","EV battery / SPAC","Nov&ndash;Dec 2020","~+1,000%",4,"Solid-state battery story with zero revenue. Peaked eight weeks after the de-SPAC."],
+  ["NKLA","Nikola","EV / SPAC","Jun 2020","~+600% intra-year",3,"The truck rolled downhill. Marked the top of the first SPAC wave."],
+  ["OSTK","Overstock","E-commerce","2020","~+900%",3,"Second appearance on this list in three years, different story each time."],
+  ["FVRR","Fiverr","Gig marketplace","2020","~+730%",3,"Remote-work adoption pulled forward five years of demand."],
+  ["EXPI","eXp World","Real estate","2020","~+700%",3,"Agent-count compounding plus a cloud brokerage model with no offices."],
+  ["ENPH","Enphase Energy","Solar","2020","~+570%",3,"Second consecutive year as a top-five leader."],
+  ["GRWG","GrowGeneration","Cannabis picks","2020","~+500%",3,"Hydroponics retail &mdash; the arms dealer of the cannabis trade."],
+  ["PTON","Peloton","Connected fitness","2020","~+434%",3,"Gyms closed. Textbook demand pull-forward, and a textbook 2021 unwind."],
+  ["RUN","Sunrun","Solar","2020","~+400%",3,"Residential solar plus the Vivint acquisition."],
+  ["DQ","Daqo New Energy","Solar / poly","2020","~+400%",3,"Polysilicon pricing leverage."],
+  ["ZM","Zoom Video","Software","2020","~+396%",2,"Revenue grew 326% in a year. The fundamentals actually justified the move."],
+  ["SE","Sea Limited","SEA internet","2020","~+395%",2,"Garena funding Shopee's expansion. Best large-cap compounder of the cycle."],
+  ["ETSY","Etsy","E-commerce","2020","~+300%",2,"Masks in Q2 brought buyers who stayed for everything else."],
+  ["SQ","Square (Block)","Fintech","2020","~+248%",2,"Cash App stimulus deposits plus bitcoin volume."],
+  ["PENN","Penn Entertainment","Gaming","Mar&ndash;Dec 2020","~+1,000% off the low",4,"The Barstool stake made it the retail vehicle for the reopening."],
+  ["DKNG","DraftKings","Sports betting","2020","~+180%",2,"State-by-state legalization as a visible TAM ramp."],
+  ["APPS","Digital Turbine","Mobile software","2020","~+400%",3,"On-device app delivery. Real earnings behind the move &mdash; and it kept working into 2021."],
+  ["PACB","Pacific Biosciences","Genomics","2020","~+600%",3,"Long-read sequencing plus an ARK-driven bid."],
+  ["CHWY","Chewy","E-commerce","2020","~+200%",2,"Autoship subscription economics finally understood."],
+  ["W","Wayfair","E-commerce","Mar&ndash;Aug 2020","~+1,000% off the low",4,"From a going-concern discussion in March to an all-time high by August."],
+  ["ROKU","Roku","Streaming","2020","~+148%",1,"Third straight year of leadership."],
+  ["MSTR","MicroStrategy","Bitcoin proxy","Aug&ndash;Dec 2020","~+170%",2,"August 2020 was the first corporate bitcoin treasury. That single decision drove five years of leadership."],
+  ["MARA","Marathon Digital","Crypto proxy","Q4 2020","~+800%",3,"Second cycle for the same ticker. It shows up again in 2021 and 2024."],
+  ["CELH","Celsius Holdings","Beverage","2020","~+250%",2,"Distribution expansion. Kept compounding for three more years."],
+  ["NVDA","NVIDIA","Semis","2020","~+122%",1,"The quiet year between two explosive ones."]
+ ]},
+
+ {y:"2021", tag:"Cycle 05", n:"Meme, crypto blowoff, commodities, and the top",
+  r:"Leadership fractured into four unrelated groups and rotated violently between them. Growth peaked in February, commodities peaked in May, crypto peaked in November. By December the index was at a high with the average growth stock down 40%.",
+  f:[["What drove it","Retail options flow, stimulus, a commodity squeeze, and the last of zero rates"],["Where it started","Jan 2021 short squeeze"],["How it ended","Nov 2021 &mdash; breadth topped a full month before the S&P"]],
+  d:[
+  ["GME","GameStop","Meme / squeeze","Jan 2021","~+2,400% in 3 weeks",4,"140% short interest plus retail options gamma. The purest mechanical squeeze on record."],
+  ["AMC","AMC Entertainment","Meme / squeeze","Jan &amp; Jun 2021","~+2,850% peak",4,"Two separate squeezes. Management sold equity into both, which was the correct move."],
+  ["BB","BlackBerry","Meme","Jan 2021","~+280%",2,"Group beta with no underlying change."],
+  ["KOSS","Koss Corp","Meme","Jan 2021","~+1,800% in days",4,"$20M market cap headphone maker to $2B in a week."],
+  ["DWAC","Digital World Acquisition","SPAC / political","Oct 2021","~+1,200% in 3 days",4,"A shell announcing a Trump merger. Late-cycle marker."],
+  ["UPST","Upstart","Fintech / AI lending","Dec 2020&ndash;Oct 2021","~+770%",3,"AI credit underwriting with real earnings growth &mdash; then down 95%. Best case study on this page."],
+  ["COIN","Coinbase","Crypto exchange","Apr 2021 direct listing","peaked at $429",2,"Listed at the exact top of the retail crypto cycle. The listing itself was the signal."],
+  ["MSTR","MicroStrategy","Bitcoin proxy","2021","~+300% to the Feb peak",2,"Levered bitcoin exposure through a public equity."],
+  ["MARA","Marathon Digital","Bitcoin miner","Q1 &amp; Q4 2021","~+400%",3,"Two distinct legs, both driven by hashrate expansion announcements."],
+  ["RIOT","Riot Platforms","Bitcoin miner","Q1 2021","~+400%",3,"Third appearance in five years for the same ticker."],
+  ["SI","Silvergate Capital","Crypto bank","2021","~+180%",2,"Crypto deposit franchise. Failed in 2023 &mdash; the theme's tail risk made real."],
+  ["AFRM","Affirm","BNPL","Q4 2021","~+150%",2,"The Amazon partnership was the catalyst; the peak came four weeks later."],
+  ["LCID","Lucid Group","EV / SPAC","Nov 2021","~+170%",2,"Briefly worth more than Ford. Peak EV sentiment."],
+  ["RIVN","Rivian","EV / IPO","Nov 2021","$153B day-one cap",2,"Largest IPO since Alibaba, at the exact top of the theme."],
+  ["NUE","Nucor","Steel","2021","~+130%",2,"Hot-rolled coil went to $1,900/ton. Real cash-flow leadership."],
+  ["X","United States Steel","Steel","H1 2021","~+100%",1,"Highest-beta steel expression."],
+  ["AA","Alcoa","Aluminum","2021","~+125%",2,"Energy-cost-driven supply constraint out of China and Europe."],
+  ["DVN","Devon Energy","Energy","2021","~+180%",2,"Introduced the variable dividend, which re-rated the entire E&amp;P group."],
+  ["MRO","Marathon Oil","Energy","2021","~+150%",2,"Second-half rotation as growth broke down."],
+  ["FANG","Diamondback Energy","Energy","2021","~+140%",2,"Permian pure play with the cleanest balance sheet."],
+  ["NVDA","NVIDIA","Semis","2021","~+125%",2,"Third distinct leadership cycle for the same stock in six years."],
+  ["ON","onsemi","Semis","2021","~+100%",1,"Silicon carbide plus the auto content story."],
+  ["ASAN","Asana","Software","2021","~+130%",2,"Peak SaaS multiple expansion &mdash; 40x revenue before the unwind."],
+  ["BILL","BILL Holdings","Fintech software","2021","~+100%",1,"Payment volume growth plus float income optionality."],
+  ["BROS","Dutch Bros","Restaurants / IPO","Sep 2021 IPO","~+100% from IPO",1,"Unit growth story. Held up better than most of the class."],
+  ["SGML","Sigma Lithium","Lithium","2021&ndash;22","~+500%",3,"Hard-rock lithium in Brazil into a spodumene price spike."],
+  ["ALB","Albemarle","Lithium","2021&ndash;22","~+150%",2,"The liquid, institutional lithium vehicle."],
+  ["FUBO","fuboTV","Streaming / betting","Q4 2020&ndash;Jan 2021","~+500%",3,"Sports betting narrative bolted onto a streaming business."]
+ ]},
+
+ {y:"2022", tag:"Cycle 06", n:"Bear market &mdash; leadership rotates to hard assets",
+  r:"The one year in the decade where leadership had nothing to do with technology. Energy, coal, fertilizer, tankers and defense led while every 2021 leader lost 60&ndash;90%. Learning that leadership <em>always</em> exists is the lesson of this cycle.",
+  f:[["What drove it","425bp of hikes, an energy supply shock, and the war in Ukraine"],["Where it started","Jan 2022, from the growth top"],["How it ended","Oct 2022 &mdash; the low that launched the entire AI cycle"]],
+  d:[
+  ["OXY","Occidental Petroleum","Energy","2022","~+117%",1,"Berkshire bought roughly 20%. The single most-followed institutional stamp of the year."],
+  ["XOM","Exxon Mobil","Energy","2022","~+80%",1,"Free cash flow at record levels with capex discipline held."],
+  ["HES","Hess Corp","Energy","2022","~+85%",1,"Guyana asset value re-rated."],
+  ["SLB","SLB","Oil services","2022","~+75%",1,"International capex cycle turning after eight flat years."],
+  ["HAL","Halliburton","Oil services","2022","~+73%",1,"North American pressure pumping pricing power."],
+  ["MPC","Marathon Petroleum","Refining","2022","~+75%",1,"Crack spreads at all-time highs plus aggressive buybacks."],
+  ["VLO","Valero Energy","Refining","2022","~+75%",1,"Same trade, purest expression."],
+  ["PBF","PBF Energy","Refining","2022","~+200%",2,"Highest-beta refiner &mdash; the group's small-cap leader."],
+  ["BTU","Peabody Energy","Coal","2022","~+170%",2,"European gas substitution. Best-performing S&amp;P-adjacent name of the year."],
+  ["AMR","Alpha Metallurgical","Coal","2022","~+150%",2,"Met coal pricing plus a buyback retiring double-digit percentages of the float."],
+  ["CEIX","CONSOL Energy","Coal","2022","~+130%",2,"Thermal export leverage."],
+  ["ARLP","Alliance Resource","Coal","2022","~+130%",2,"Contracted volumes with a double-digit distribution yield."],
+  ["CF","CF Industries","Fertilizer","2022","~+40%",1,"North American gas cost advantage versus European producers."],
+  ["MOS","Mosaic","Fertilizer","2022","~+35%",1,"Potash supply disruption out of Belarus and Russia."],
+  ["INSW","International Seaways","Tankers","2022","~+200%",2,"Ton-mile expansion as crude re-routed. Best shipping chart of the cycle."],
+  ["FRO","Frontline","Tankers","2022","~+130%",2,"VLCC day rates going from negative margins to record levels."],
+  ["LMT","Lockheed Martin","Defense","2022","~+37%",1,"Ukraine restocking plus the return of multi-year procurement."],
+  ["NOC","Northrop Grumman","Defense","2022","~+40%",1,"B-21 program plus a defensive earnings profile."],
+  ["ENPH","Enphase Energy","Solar","2022","~+44%",1,"Third leadership cycle in four years &mdash; and the last one."],
+  ["MCK","McKesson","Healthcare dist.","2022","~+50%",1,"Zero-beta earnings compounding. Led because everything else broke."],
+  ["MRK","Merck","Pharma","2022","~+45%",1,"Keytruda plus defensive positioning."],
+  ["LLY","Eli Lilly","Pharma / GLP-1","2022","~+32%",1,"Tirzepatide data started the multi-year GLP-1 re-rating here."],
+  ["MDGL","Madrigal Pharma","Biotech","Dec 2022","~+250% in one day",2,"MAESTRO-NASH phase 3. The year's binary-outcome winner."],
+  ["KRTX","Karuna Therapeutics","Biotech","2022","~+130%",2,"KarXT schizophrenia data. Acquired by BMS a year later for $14B."]
+ ]},
+
+ {y:"2023", tag:"Cycle 07", n:"AI wave one",
+  r:"May 24, 2023 &mdash; Nvidia guided a quarter 50% above consensus and the entire market repriced overnight. Everything on this list traces back to that print. Alongside it, the deepest-discounted 2021 survivors squeezed hardest.",
+  f:[["What drove it","Nvidia's May guidance raise, ChatGPT adoption, and a violent short squeeze off the Oct 2022 low"],["Where it started","Oct 13, 2022"],["How it ended","It never did &mdash; it broadened into 2024"]],
+  d:[
+  ["NVDA","NVIDIA","AI semis","2023","~+239%",2,"The May 24 guidance raise is the single most important print of the decade."],
+  ["SMCI","Super Micro Computer","AI servers","2023","~+246%",2,"Rack-scale GPU integration. Tight float plus real earnings acceleration &mdash; the best combination on this page."],
+  ["META","Meta Platforms","Internet","2023","~+194%",2,"The 'year of efficiency.' A mega-cap turnaround that traded like a small cap."],
+  ["CVNA","Carvana","E-commerce / auto","2023","~+1,000%",4,"Priced for bankruptcy in December 2022. Debt restructuring plus a squeeze on a 60% short interest."],
+  ["COIN","Coinbase","Crypto exchange","2023","~+391%",2,"Survived the SEC suit and the FTX aftermath as the last exchange standing."],
+  ["MSTR","MicroStrategy","Bitcoin proxy","2023","~+346%",2,"Bitcoin's recovery plus the ETF approval anticipation trade."],
+  ["APP","AppLovin","Adtech / AI","2023","~+260%",2,"The AXON 2.0 ad engine inflected. Almost nobody noticed until 2024."],
+  ["VRT","Vertiv Holdings","Data center power","2023","~+240%",2,"First name to trade purely as a data-center power-and-cooling proxy."],
+  ["PLTR","Palantir","AI software","2023","~+167%",2,"First GAAP-profitable quarters plus the AIP launch."],
+  ["ELF","e.l.f. Beauty","Consumer","2023","~+160%",2,"Twenty consecutive quarters of double-digit growth. Best non-tech leader of the year."],
+  ["AI","C3.ai","AI software","H1 2023","~+250%",2,"The name-only AI trade. Round-tripped by year-end &mdash; the group's low-quality tell."],
+  ["DKNG","DraftKings","Sports betting","2023","~+200%",2,"Path to profitability plus new state launches."],
+  ["RCL","Royal Caribbean","Travel","2023","~+160%",2,"Cruise pricing above 2019 levels. Best reopening laggard."],
+  ["UBER","Uber","Mobility","2023","~+149%",2,"First full year of GAAP profitability, then the S&amp;P 500 add."],
+  ["DUOL","Duolingo","Consumer software","2023","~+140%",2,"DAU acceleration plus the first profitable quarters."],
+  ["CRWD","CrowdStrike","Cybersecurity","2023","~+142%",2,"Platform consolidation. The best of the 2019 IPO class."],
+  ["SPOT","Spotify","Streaming","2023","~+138%",2,"Price increases plus a cost reset. Gross margin was the whole story."],
+  ["AMD","Advanced Micro Devices","AI semis","2023","~+128%",2,"MI300 announcement made it the second AI accelerator."],
+  ["ANET","Arista Networks","Networking","2023","~+90%",1,"AI back-end Ethernet switching. Quiet, high-quality compounding."],
+  ["RMBS","Rambus","Semis IP","2023","~+100%",1,"HBM interface IP &mdash; an early tell for the memory cycle to come."],
+  ["LLY","Eli Lilly","Pharma / GLP-1","2023","~+60%",1,"Mounjaro launch. The largest non-AI theme of the cycle."],
+  ["NVO","Novo Nordisk","Pharma / GLP-1","2023","~+50%",1,"Ozempic supply-constrained. The other half of the GLP-1 duopoly."]
+ ]},
+
+ {y:"2024", tag:"Cycle 08", n:"AI broadens into power, nuclear, crypto and space",
+  r:"The market stopped paying only for chips and started paying for everything a data center consumes: electricity, transformers, cooling, connectivity, land. It was also the year SMCI showed what happens when an AI leader breaks.",
+  f:[["What drove it","Hyperscaler capex guides, a data-center power shortage, the bitcoin ETFs, and the election"],["Where it started","Oct 2023 rate low"],["How it ended","It rolled straight into 2025 &mdash; but leadership changed hands"]],
+  d:[
+  ["APP","AppLovin","Adtech / AI","2024","~+713%",3,"Best large-cap performer of the year. The ad engine finally showed up in the numbers."],
+  ["SOUN","SoundHound AI","Voice AI","2024","~+830%",3,"Nvidia disclosed a stake. Small float, minimal revenue &mdash; pure theme beta."],
+  ["TSSI","TSS Inc","Data center services","2024","~+1,000%+",4,"Sub-$50M market cap to a rack-integration business. Study it as float mechanics, not as an investment."],
+  ["SMR","NuScale Power","Nuclear SMR","2024","~+450%",3,"No operating reactor, no revenue. The purest expression of the nuclear-for-AI narrative."],
+  ["ASTS","AST SpaceMobile","Space / telecom","2024","~+400%",3,"First direct-to-cell satellite calls plus AT&amp;T and Verizon agreements."],
+  ["MSTR","MicroStrategy","Bitcoin proxy","2024","~+359%",2,"Third consecutive leadership year. The convertible-financed accumulation model."],
+  ["RKLB","Rocket Lab","Space","2024","~+350%",2,"Electron cadence plus the Neutron program. Best space fundamental story."],
+  ["PLTR","Palantir","AI software","2024","~+340%",2,"S&amp;P 500 add in September, then Nasdaq-100. Commercial revenue accelerating past 50%."],
+  ["RDDT","Reddit","Internet / IPO","Mar 2024 IPO","~+300% from IPO",2,"Data-licensing revenue for AI training was the model nobody had priced."],
+  ["LUNR","Intuitive Machines","Space","2024","~+300%",2,"First commercial lunar landing plus a NASA contract award."],
+  ["VST","Vistra","Power / nuclear","2024","~+265%",2,"Best S&amp;P 500 performer of the year after PLTR. Merchant nuclear became scarce."],
+  ["CLS","Celestica","Hardware / networking","2024","~+250%",2,"400G/800G switching for hyperscalers. Contract manufacturing with pricing power."],
+  ["SMCI","Super Micro Computer","AI servers","Jan&ndash;Mar 2024","~+300%, then &ndash;70%",3,"Ran 3x in ten weeks, then an auditor resignation and a delisting scare. The cautionary tale of the cycle."],
+  ["SFM","Sprouts Farmers Market","Grocery","2024","~+230%",2,"Best non-tech leader of the year. Comps accelerating with real margin expansion."],
+  ["CRDO","Credo Technology","AI connectivity","2024","~+200%",2,"Active electrical cables for GPU racks. Tight float plus accelerating earnings."],
+  ["TLN","Talen Energy","Power / nuclear","2024","~+200%",2,"The Amazon data-center deal at Susquehanna re-priced the entire merchant power group."],
+  ["HOOD","Robinhood","Brokerage","2024","~+200%",2,"Crypto volumes plus interest income plus a re-rating from meme stock to real business."],
+  ["INSM","Insmed","Biotech","2024","~+200%",2,"ASPEN phase 3 in bronchiectasis. Best large-cap biotech move of the year."],
+  ["NVDA","NVIDIA","AI semis","2024","~+171%",2,"A third consecutive year of leadership at a multi-trillion-dollar cap. Historically unusual."],
+  ["GEV","GE Vernova","Power equipment","Apr 2024 spin","~+160%",2,"Gas turbine backlog sold out into the 2028s."],
+  ["CAVA","CAVA Group","Restaurants","2024","~+160%",2,"Best restaurant unit economics in the market."],
+  ["MOD","Modine Manufacturing","Cooling","2024","~+150%",2,"An HVAC company repriced as a data-center thermal play."],
+  ["LEU","Centrus Energy","Uranium / HALEU","2024","~+140%",2,"Only US HALEU enrichment capability. Sole-source government contracts."],
+  ["AXON","Axon Enterprise","Public safety tech","2024","~+141%",2,"Software attach rate on hardware. Ninety percent-plus recurring revenue."],
+  ["POWL","Powell Industries","Electrical equipment","2024","~+130%",2,"Switchgear backlog from data centers and LNG."],
+  ["AVGO","Broadcom","AI semis / custom","2024","~+110%",2,"Custom XPU business made it the credible number two to Nvidia."],
+  ["OKLO","Oklo","Nuclear SMR","May 2024 listing","~+150%",2,"Sam Altman-chaired, pre-revenue. Became a 2025 leader."],
+  ["ALAB","Astera Labs","AI connectivity","Mar 2024 IPO","~+150% from IPO",2,"PCIe and CXL retimers &mdash; a genuine bottleneck component."],
+  ["VKTX","Viking Therapeutics","Biotech / GLP-1","Feb 2024","~+300% in weeks",2,"Phase 2 obesity data. The binary-outcome winner of the year."],
+  ["NNE","Nano Nuclear Energy","Nuclear","2024","~+250%",2,"Microreactor concept with no product. Group beta."],
+  ["TSM","Taiwan Semiconductor","Foundry","2024","~+90%",1,"The chokepoint for every accelerator on this page."],
+  ["MRVL","Marvell Technology","AI semis","2024","~+80%",1,"Custom silicon plus optical DSPs."]
+ ]},
+
+ {y:"2025", tag:"Cycle 09", n:"The theme year &mdash; quantum, rare earth, stablecoin, and the memory ignition",
+  r:"The broadest set of distinct leadership themes of the decade. Government policy became a direct stock catalyst for the first time in the period, and in Q4 the memory complex broke out into what became the 2026 tape.",
+  f:[["What drove it","US industrial policy and direct equity stakes, stablecoin legislation, an AI power crunch, and a NAND/DRAM shortage"],["Where it started","April 2025 tariff low"],["How it ended","It is the same cycle still running in 2026 &mdash; the leadership just narrowed to memory"]],
+  d:[
+  ["MP","MP Materials","Rare earth","2025","~+369%",2,"The DoD took an equity stake and set a price floor in July. Policy as catalyst, in its clearest form."],
+  ["LITE","Lumentum","Optics","2025","~+339%",2,"Best S&amp;P 500 performer of the year. Datacom transceivers for AI clusters."],
+  ["WDC","Western Digital","Storage","2025","~+306%",2,"HDD pricing power as nearline capacity sold out through 2026."],
+  ["IREN","IREN Ltd","AI datacenter / mining","2025","~+293%",2,"Bitcoin miner to AI cloud. The most successful pivot of the group."],
+  ["MU","Micron","Memory","2025","~+240%",2,"HBM sold out through 2026. Second appearance as a cycle leader in this decade."],
+  ["HOOD","Robinhood","Brokerage","2025","~+235%",2,"Second consecutive leadership year. Prediction markets and tokenization added a new line."],
+  ["QBTS","D-Wave Quantum","Quantum","2025","~+220% (~3,670% trailing)",4,"Quantum annealing. Two separate boom-and-bust legs inside the same year."],
+  ["ASTS","AST SpaceMobile","Space / telecom","2025","~+198%",2,"Second consecutive leadership year as the constellation actually launched."],
+  ["PGY","Pagaya Technologies","Fintech / AI credit","2025","~+355%",2,"AI underwriting reaching GAAP profitability. Almost no coverage."],
+  ["RGTI","Rigetti Computing","Quantum","2024&ndash;25","~+5,700% trailing peak",4,"Superconducting qubits, minimal revenue. Largest percentage move on this entire page."],
+  ["IONQ","IonQ","Quantum","2024&ndash;25","~+400% base-to-peak",3,"Trapped-ion. The institutional way to own quantum, and the group's liquidity leader."],
+  ["QUBT","Quantum Computing Inc","Quantum","2024&ndash;25","~+1,500%",4,"Photonic story, negligible revenue. Group's lowest-quality name and its fastest mover."],
+  ["CRCL","Circle Internet Group","Stablecoin / IPO","Jun 2025 IPO","~+500% from IPO price",3,"USDC issuer, listing straight into stablecoin legislation. Best IPO of the cycle."],
+  ["BE","Bloom Energy","Fuel cells / power","2025","~+400%",3,"Solid-oxide fuel cells sold as on-site data-center power. Real revenue, unlike the SMR names."],
+  ["CRWV","CoreWeave","AI cloud / IPO","Mar 2025 IPO","~+300% from IPO",2,"The first pure-play GPU cloud to list. Contracted backlog was the entire story."],
+  ["NBIS","Nebius Group","AI cloud","2025","~+300%",2,"The Microsoft capacity agreement re-rated the whole neocloud group."],
+  ["OKLO","Oklo","Nuclear SMR","2025","~+300%",2,"Pre-revenue. DOE site approvals plus data-center power agreements."],
+  ["BMNR","Bitmine Immersion","Crypto treasury","2025","~+3,000% intra-year",4,"An ETH treasury vehicle. The 2025 version of the 2017 crypto-shell trade."],
+  ["SBET","SharpLink Gaming","Crypto treasury","2025","~+2,000% intra-year",4,"Same mechanic, same round trip. Late-cycle marker for the theme."],
+  ["USAR","USA Rare Earth","Rare earth","2025","~+400%",3,"Magnet manufacturing plus a Texas deposit. Highest-beta rare earth name."],
+  ["TMC","TMC the metals company","Deep-sea minerals","2025","~+500%",3,"An executive order on seabed mining. Pure policy beta."],
+  ["CIFR","Cipher Mining","AI datacenter / mining","2025","~+400%",3,"A 15-year AWS campus lease worth roughly $8.5B in future payments."],
+  ["APLD","Applied Digital","AI datacenter","2025","~+400%",3,"HPC hosting leases with investment-grade tenants."],
+  ["OPEN","Opendoor Technologies","Meme / real estate","Jul&ndash;Aug 2025","~+800% in weeks",3,"The 2025 meme squeeze. No fundamental change &mdash; float and social flow only."],
+  ["ABVX","Abivax","Biotech","Jun 2025","~+500% in one day",3,"Obefazimod phase 3 in ulcerative colitis. Binary-outcome winner of the year."],
+  ["SNDK","SanDisk","NAND / memory","Feb 2025 spin","~+400% from the spin",3,"Spun out of WDC in February at a forgotten valuation, then NAND pricing inflected."],
+  ["ONDS","Ondas Holdings","Drones / defense","2025","~+700%",3,"Counter-drone and autonomous systems. Small cap that became liquid on the move."],
+  ["UUUU","Energy Fuels","Uranium / rare earth","2025","~+400%",3,"The only US producer sitting in both the uranium and rare earth themes."],
+  ["SATS","EchoStar","Spectrum","2025","~+400%",3,"Sold spectrum to AT&amp;T and SpaceX. A pure asset-value re-rating."],
+  ["AMD","Advanced Micro Devices","AI semis","2025","~+150%",2,"The OpenAI supply agreement with warrants in October re-rated the second source."],
+  ["ORCL","Oracle","AI cloud","2025","~+80%",1,"The September RPO disclosure produced a 36% single-day move in a megacap. Nearly unprecedented."],
+  ["GEV","GE Vernova","Power equipment","2025","~+90%",1,"Second consecutive leadership year on turbine scarcity."],
+  ["VRT","Vertiv Holdings","Data center power","2025","~+70%",1,"Third leadership cycle in three years."],
+  ["RKLB","Rocket Lab","Space","2025","~+100%",1,"Second consecutive year. Neutron timeline was the swing factor."],
+  ["STX","Seagate","Storage","2025","~+200%",2,"HAMR ramp into a structural nearline shortage."],
+  ["ARWR","Arrowhead Pharmaceuticals","Biotech","2025","~+200%",2,"RNAi platform deals and a partnership-driven balance sheet reset."],
+  ["COGT","Cogent Biosciences","Biotech","2025","~+300%",2,"Bezuclastinib pivotal data."],
+  ["TERN","Terns Pharmaceuticals","Biotech","2025","~+250%",2,"Oral GLP-1 data in a crowded, well-funded theme."],
+  ["ARMN","Aris Mining","Gold","2025","~+300%",2,"Gold at record highs with production growth. The overlooked 2025 theme."],
+  ["AAUC","Allied Gold","Gold","2025","~+300%",2,"Same trade, higher operational leverage."],
+  ["COMM","CommScope","Connectivity","2025","~+300%",2,"Deleveraging plus data-center connectivity demand. A turnaround inside a theme."],
+  ["UEC","Uranium Energy","Uranium","2025","~+150%",2,"US production restart into government stockpile buying."],
+  ["CCJ","Cameco","Uranium","2025","~+80%",1,"The liquid institutional uranium vehicle plus the Westinghouse stake."],
+  ["KTOS","Kratos Defense","Defense / drones","2025","~+150%",2,"Collaborative combat aircraft programs finally funded."],
+  ["AVAV","AeroVironment","Defense / drones","2025","~+80%",1,"Loitering munitions demand post-Ukraine."],
+  ["GLXY","Galaxy Digital","Crypto / AI datacenter","2025","~+150%",2,"Helios campus lease to CoreWeave &mdash; crypto balance sheet converted into AI real estate."],
+  ["WULF","TeraWulf","AI datacenter","2025","~+250%",2,"Core42 and Google-backstopped hosting agreements."],
+  ["SEZL","Sezzle","BNPL","2025","~+200%",2,"Subscription BNPL with actual GAAP profitability. Microcap that scaled."],
+  ["BBAI","BigBear.ai","AI / defense","2025","~+200%",2,"Government AI contracts. The low-quality, high-beta name of the group."],
+  ["CRML","Critical Metals","Rare earth","2025","~+400%",3,"Greenland asset plus policy attention. Extreme float beta."],
+  ["NNE","Nano Nuclear Energy","Nuclear","2025","~+200%",2,"Second consecutive year of group beta with no product."]
+ ]},
+
+ {y:"2026", tag:"Cycle 10 &middot; live", n:"The memory supercycle",
+  r:"The narrowest and most violent leadership of the decade. Memory and storage &mdash; the group that led 2016 and 2024 &mdash; is producing the largest moves in the S&amp;P 500 while the index itself is up roughly 12%. Figures are year-to-date and moving.",
+  f:[["What drove it","HBM, NAND and nearline HDD sold out against AI data-center demand, at the highest gross margins these companies have ever reported"],["Where it started","Q4 2025 breakout in MU and WDC"],["How it ended","Still running &mdash; treat every figure here as live"]],
+  d:[
+  ["SNDK","SanDisk","NAND / memory","2026 YTD","~+465&ndash;575%",3,"Best S&amp;P 500 performer of the year. From roughly $34 at the 2025 spin to over $1,500."],
+  ["MRNA","Moderna","Biotech","2026 YTD","~+388%",2,"The one non-memory name in the top three. A pipeline and cost-reset re-rating off a five-year base."],
+  ["INTC","Intel","Semis / foundry","2026 YTD","~+197&ndash;278%",2,"The decade's biggest laggard becoming a leader. Foundry validation plus government and strategic stakes."],
+  ["MU","Micron","Memory","2026 YTD","~+235% (~+706% trailing yr)",2,"Net income up roughly 15x year over year. Approaching an $800B market cap."],
+  ["WDC","Western Digital","Storage","2026 YTD","~+180%",2,"Second consecutive leadership year. Nearline HDD contracted well into 2027."],
+  ["STX","Seagate","Storage","2026 YTD","~+180%",2,"HAMR at volume into a supply-constrained market."],
+  ["LITE","Lumentum","Optics","2026 YTD","~+120%",1,"Backing up 2025's 339%. Optics remains the second-order AI bottleneck."],
+  ["MPC","Marathon Petroleum","Refining","2026 YTD","~+120%",1,"The non-tech leader. Refining margins again, four years after 2022."],
+  ["TPL","Texas Pacific Land","Land / royalties","2026 YTD","top-2 S&amp;P performer",2,"882,000 Permian acres. Royalties plus water plus data-center land optionality."],
+  ["QBTS","D-Wave Quantum","Quantum","2026 YTD","~+386&ndash;467%",3,"Second consecutive year as a leader. Still trades on narrative, not revenue."],
+  ["INOD","Innodata","AI data services","2026 YTD","~+386&ndash;467%",3,"Training-data and model-evaluation services. Real revenue behind the move."],
+  ["NNE","Nano Nuclear Energy","Nuclear","2026 YTD","~+386&ndash;467%",3,"Third consecutive year on this list without a deployed product. Study it as pure theme persistence."],
+  ["LUNR","Intuitive Machines","Space","2026 YTD","~+386&ndash;467%",3,"Lunar contract awards plus an expanding NASA services backlog."],
+  ["SKYT","SkyWater Technology","Specialty foundry","2026","~+27% in a month",1,"Record revenue from quantum-computing customers. The picks-and-shovels quantum name."],
+  ["AVGO","Broadcom","AI semis / custom","2026 YTD","~+60%",1,"Custom accelerator backlog. The megacap that keeps compounding through every leg."],
+  ["CRWV","CoreWeave","AI cloud","2026 YTD","~+50%",1,"Still the pure-play on contracted GPU capacity."],
+  ["ORCL","Oracle","AI cloud","2026 YTD","~+40%",1,"Working through the backlog it disclosed in September 2025."]
+ ]}
+];
+
+const list=document.getElementById('list');
+let ALL=[], TIER='all', THEMES=new Set(), Q='';
+
+// build DOM
+C.forEach((c,i)=>{
+  const sec=document.createElement('section');
+  sec.className='cycle'; sec.id='c'+i;
+  sec.innerHTML=`<div class="cycle-head">
+      <div class="yrs">${c.y}<small>${c.tag}</small></div>
+      <div>
+        <h2 class="cycle-name">${c.n}</h2>
+        <p class="regime">${c.r}</p>
+        <div class="facts">${c.f.map(f=>`<div class="fact"><span>${f[0]}</span><p>${f[1]}</p></div>`).join('')}</div>
+      </div>
+    </div>
+    <div class="tbl">
+      <div class="thead"><div>Ticker</div><div>Company</div><div>Theme</div><div>Window</div><div>Move</div><div>Why it led</div></div>
+      ${c.d.map(r=>`<div class="row t${r[5]}" data-theme="${r[2]}" data-tier="${r[5]}" data-s="${(r[0]+' '+r[1]+' '+r[2]+' '+r[6]).toLowerCase().replace(/"/g,'')}">
+        <div class="tk">${r[0]}</div>
+        <div class="co">${r[1]}</div>
+        <div class="th">${r[2]}</div>
+        <div class="wd">${r[3]}</div>
+        <div class="mvcell"><div class="mv">${r[4]}</div><div class="bar"><i></i></div></div>
+        <div class="nt">${r[6]}</div>
+      </div>`).join('')}
+      <div class="empty hide">No names match this filter.</div>
+    </div>`;
+  list.appendChild(sec);
+});
+
+ALL=[...document.querySelectorAll('.row')];
+document.getElementById('s-count').textContent=ALL.length;
+
+// theme chips
+const themeCounts={};
+ALL.forEach(r=>{const t=r.dataset.theme;themeCounts[t]=(themeCounts[t]||0)+1});
+const groups={
+ 'AI semis & memory':['AI semis','Memory','Semis','Semis / GPU','Semi equipment','Storage','NAND / memory','AI connectivity','Semis IP','Foundry','AI semis / custom','Semis / foundry','Specialty foundry','Optics','Hardware / networking','Networking'],
+ 'Power & nuclear':['Power / nuclear','Nuclear SMR','Nuclear','Uranium / HALEU','Uranium','Uranium / rare earth','Power equipment','Data center power','Cooling','Electrical equipment','Fuel cells / power','AI datacenter','AI datacenter / mining','AI cloud','AI cloud / IPO','Data center services'],
+ 'Crypto & fintech':['Crypto proxy','Bitcoin proxy','Bitcoin miner','Crypto exchange','Crypto bank','Crypto treasury','Fintech','BNPL','Brokerage','Fintech / AI credit','Stablecoin / IPO','Crypto / AI datacenter','Fintech software','Fintech / AI lending'],
+ 'Quantum':['Quantum'],
+ 'Materials & energy':['Rare earth','Deep-sea minerals','Lithium','Steel','Aluminum','Energy','Oil services','Refining','Coal','Fertilizer','Tankers','Gold','Land / royalties','Spectrum'],
+ 'Space & defense':['Space','Space / telecom','Defense','Defense / drones','Drones / defense','AI / defense'],
+ 'Software & internet':['AI software','Software','Software / IPO','Cybersecurity','Cybersecurity / IPO','Adtech','Adtech / AI','Internet','Internet / IPO','China internet','China e-commerce','Streaming','Streaming / betting','Consumer software','Commerce software','Mobile software','AI data services','Public safety tech','Mobility','SEA internet','Connectivity'],
+ 'Consumer & retail':['E-commerce','E-commerce / auto','Retail','Restaurants','Restaurants / IPO','Consumer','Consumer / IPO','Beverage','Grocery','Cannabis','Cannabis picks','Connected fitness','Gaming','Sports betting','Travel','Real estate','Meme / real estate','Building products','Healthcare dist.','Gig marketplace'],
+ 'Biotech & pharma':['Biotech','Biotech / COVID','Biotech / GLP-1','Pharma','Pharma / GLP-1','Diagnostics','Genomics','Medtech','Medtech / IPO'],
+ 'Meme & squeeze':['Meme','Meme / squeeze','SPAC / political','EV / SPAC','EV battery / SPAC'],
+ 'EV & solar':['EV','EV / China','EV charging','EV / IPO','Solar','Solar / poly','Hydrogen']
+};
+document.getElementById('s-themes').textContent=Object.keys(themeCounts).length;
+
+const chipWrap=document.getElementById('themechips');
+Object.keys(groups).forEach(g=>{
+  const n=ALL.filter(r=>groups[g].includes(r.dataset.theme)).length;
+  if(!n)return;
+  const b=document.createElement('button');
+  b.className='chip'; b.setAttribute('aria-pressed','false'); b.dataset.group=g;
+  b.textContent=g+' · '+n;
+  b.onclick=()=>{const on=b.getAttribute('aria-pressed')==='true';b.setAttribute('aria-pressed',String(!on));on?THEMES.delete(g):THEMES.add(g);apply()};
+  chipWrap.appendChild(b);
+});
+
+function apply(){
+  let shown=0;
+  ALL.forEach(r=>{
+    let ok=true;
+    if(Q && !r.dataset.s.includes(Q)) ok=false;
+    if(ok && TIER!=='all' && +r.dataset.tier < +TIER) ok=false;
+    if(ok && THEMES.size){
+      let hit=false;
+      THEMES.forEach(g=>{if(groups[g].includes(r.dataset.theme))hit=true});
+      if(!hit) ok=false;
+    }
+    r.classList.toggle('hide',!ok);
+    if(ok) shown++;
+  });
+  document.querySelectorAll('.cycle').forEach(sec=>{
+    const any=[...sec.querySelectorAll('.row')].some(r=>!r.classList.contains('hide'));
+    sec.querySelector('.empty').classList.toggle('hide',any);
+  });
+  document.getElementById('count').textContent=shown+' of '+ALL.length+' names shown';
+}
+
+document.getElementById('q').addEventListener('input',e=>{Q=e.target.value.trim().toLowerCase();apply()});
+document.querySelectorAll('.seg [data-tier]').forEach(b=>{
+  b.onclick=()=>{document.querySelectorAll('.seg [data-tier]').forEach(x=>x.setAttribute('aria-pressed','false'));b.setAttribute('aria-pressed','true');TIER=b.dataset.tier;apply()};
+});
+document.getElementById('clear').onclick=()=>{
+  Q='';TIER='all';THEMES.clear();
+  document.getElementById('q').value='';
+  document.querySelectorAll('.chip').forEach(c=>c.setAttribute('aria-pressed','false'));
+  document.querySelectorAll('.seg [data-tier]').forEach((x,i)=>x.setAttribute('aria-pressed',i===0?'true':'false'));
+  apply();
+};
+apply();
+</script>
