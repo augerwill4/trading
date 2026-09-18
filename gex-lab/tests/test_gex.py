@@ -2,7 +2,7 @@ import unittest
 from datetime import date, datetime, timezone
 from pathlib import Path
 
-from gexlab import providers
+from gexlab.sources import local
 from gexlab.chain import Chain, OptionQuote, dump_csv, load_csv
 from gexlab.gex import (
     by_strike,
@@ -111,7 +111,7 @@ class TestChainIO(unittest.TestCase):
 
 class TestSampleChainEndToEnd(unittest.TestCase):
     def test_sample_chain_produces_a_full_snapshot(self):
-        c = providers.from_csv(SAMPLE).filtered(min_oi=1)
+        c = local.fetch(SAMPLE).filtered(min_oi=1)
         strikes = by_strike(c)
         snap = Snapshot(c, strikes, gamma_profile(c, range_pct=0.10, steps=161), "long_calls_short_puts")
         self.assertGreater(len(strikes), 50)
@@ -126,9 +126,9 @@ class TestSampleChainEndToEnd(unittest.TestCase):
     def test_sample_chain_is_deterministic(self):
         # as_of is pinned in the file, so the demo output must not drift with
         # the wall clock.
-        c = providers.from_csv(SAMPLE)
+        c = local.fetch(SAMPLE)
         self.assertEqual(c.as_of, NOW)
-        self.assertAlmostEqual(total_gex(c), total_gex(providers.from_csv(SAMPLE)))
+        self.assertAlmostEqual(total_gex(c), total_gex(local.fetch(SAMPLE)))
 
 
 if __name__ == "__main__":

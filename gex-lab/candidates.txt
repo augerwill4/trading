@@ -1,0 +1,244 @@
+# GEX Lab candidate universe.
+#
+# Seed list of commonly optionable names. The weekly scan measures each one's
+# real liquidity from its own chain and keeps only what clears the thresholds
+# in config.toml, so an illiquid name here costs you one fetch, not a bad level.
+#
+# Edit freely. Blank lines and lines starting with # are ignored.
+#
+# Two known gotchas:
+#   - Berkshire is listed as BRKB, not BRK.B — options roots drop the dot.
+#   - This list reflects index membership as of authoring. Mergers, delistings
+#     and ticker changes happen; the scan reports every candidate it could not
+#     fetch as a named list rather than swallowing it, so prune from that.
+
+# Index and broad-market ETFs
+SPY
+QQQ
+IWM
+DIA
+VTI
+RSP
+MDY
+
+# Index (cash-settled)
+# VIX is deliberately absent: its options settle on VIX futures, so there
+# are no underlying shares for a dealer to hedge in. The GEX model in this
+# repo does not describe it, and a number it produced would be meaningless.
+SPX
+NDX
+RUT
+
+# Sector and thematic ETFs
+XLF
+XLE
+XLK
+XLV
+XLI
+XLP
+XLU
+XLY
+XLB
+XLRE
+XLC
+SMH
+XBI
+KRE
+ITB
+ARKK
+IYR
+
+# Rates, credit, commodities, FX
+TLT
+IEF
+HYG
+LQD
+GLD
+SLV
+GDX
+USO
+UNG
+
+# International ETFs
+EEM
+EFA
+FXI
+EWZ
+INDA
+
+# Leveraged and volatility ETFs
+TQQQ
+SQQQ
+SOXL
+SOXS
+UVXY
+VXX
+
+# Mega-cap tech
+AAPL
+MSFT
+NVDA
+AMZN
+GOOGL
+GOOG
+META
+AVGO
+TSLA
+ORCL
+CRM
+ADBE
+AMD
+INTC
+QCOM
+TXN
+MU
+AMAT
+LRCX
+KLAC
+ARM
+SMCI
+NOW
+PANW
+CRWD
+SNOW
+NET
+DDOG
+PLTR
+
+# Financials
+JPM
+BAC
+WFC
+C
+GS
+MS
+BLK
+SCHW
+AXP
+BK
+USB
+COF
+SPGI
+V
+MA
+PYPL
+
+# Healthcare
+UNH
+JNJ
+LLY
+ABBV
+MRK
+PFE
+TMO
+ABT
+DHR
+BMY
+AMGN
+GILD
+CVS
+MDT
+ISRG
+VRTX
+REGN
+MRNA
+BIIB
+
+# Consumer
+WMT
+COST
+HD
+LOW
+TGT
+MCD
+SBUX
+NKE
+PG
+KO
+PEP
+PM
+MO
+MDLZ
+CL
+KHC
+DIS
+NFLX
+BKNG
+ABNB
+DASH
+UBER
+
+# Industrials, energy, materials
+XOM
+CVX
+COP
+OXY
+SLB
+HAL
+CAT
+DE
+BA
+GE
+HON
+RTX
+LMT
+GD
+UNP
+UPS
+FDX
+MMM
+EMR
+LIN
+DOW
+FCX
+X
+CLF
+AA
+
+# Communications and utilities
+T
+VZ
+TMUS
+CMCSA
+CHTR
+WBD
+SO
+DUK
+NEE
+EXC
+AMT
+SPG
+
+# High-volume retail and momentum names
+COIN
+MSTR
+HOOD
+SOFI
+RIVN
+LCID
+NIO
+RBLX
+SNAP
+LYFT
+DKNG
+MARA
+RIOT
+CLSK
+AFRM
+SHOP
+ROKU
+PINS
+SPOT
+TTD
+ZM
+F
+GM
+LUV
+DAL
+AAL
+UAL
+CCL
+RCL
+
+# Financials (continued)
+BRKB

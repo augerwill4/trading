@@ -5,7 +5,7 @@ Personal research tool. Computes daily dealer gamma exposure (GEX) levels from f
 - NEVER write code that places orders, connects to a brokerage, or stores broker credentials. Analysis only.
 - No paid APIs or API keys unless I explicitly approve.
 - Every GEX model assumption must be commented in code AND listed in README.md under "Model Assumptions".
-- Python 3, minimal dependencies (pandas, numpy, scipy, requests, matplotlib).
+- Python 3, minimal dependencies (pandas, numpy, scipy, requests, matplotlib, yfinance).
 - Respect free data sources: rate-limit requests, cache responses, retry with backoff, never hammer an endpoint.
 - Write tests for the math and run them before saying a task is done.
 - Explain changes in plain English after each task.

@@ -1,0 +1,2 @@
+# Names to always include in the universe and to chart, whatever the scan says.
+# One ticker per line. Blank lines and # comments are ignored.

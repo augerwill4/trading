@@ -1,0 +1,66 @@
+# GEX Lab configuration.
+#
+# Everything tunable lives here so that changing a threshold is never a code
+# change. Values are read by gexlab/config.py.
+
+[data]
+# Order matters: the first source is tried, the second is the fallback.
+primary  = "cboe"
+fallback = "yahoo"
+
+# Used by the Black-Scholes gamma calculation in Phase 2.
+risk_free_rate = 0.043
+dividend_yield = 0.010
+
+[http]
+# Politeness. Cboe serves these files from a CDN and Yahoo is an undocumented
+# endpoint we are guests on; neither should be hammered. One request per second
+# is slow enough to be invisible to them and fast enough for a weekly scan.
+requests_per_second  = 1.0
+timeout_seconds      = 30
+max_retries          = 4
+backoff_base_seconds = 2.0
+backoff_max_seconds  = 60.0
+
+[cache]
+# One fetch per ticker per source per day. Chains are large, so entries are
+# gzipped and pruned on a rolling window.
+dir            = "data/cache"
+retention_days = 30
+
+[liquidity]
+# Thresholds a ticker must clear to enter the universe.
+min_total_open_interest = 50000
+min_daily_option_volume = 10000
+max_atm_spread_pct      = 0.05
+min_underlying_price    = 10.0
+
+# How "near-the-money front-month" is defined when measuring spread.
+# Expirations closer than front_month_min_dte are excluded: 0-2DTE spreads are
+# not representative of a name's real liquidity.
+front_month_min_dte = 5
+atm_band_pct        = 0.05
+
+[universe]
+# These are in the universe whatever the metrics say (CLAUDE.md), flagged with
+# the reason they bypassed the thresholds.
+always_include  = ["SPY", "QQQ", "SPX", "IWM"]
+candidates_file = "candidates.txt"
+watchlist_file  = "watchlist.txt"
+output          = "data/universe.csv"
+top_n_daily     = 50
+
+[scan]
+# Guard against scanning a partial session. Per-contract volume is near zero
+# before the close, which would fail almost every ticker and silently produce a
+# gutted universe. See README, "Running the scan".
+require_after_close     = true
+close_hour_et           = 16
+close_grace_minutes     = 15
+min_volume_to_oi_ratio  = 0.02
+
+[yahoo]
+# The fallback fetches one request per expiration, so a full chain is expensive.
+# Capping expirations keeps it usable; it also means a Yahoo-sourced scan
+# understates total open interest relative to Cboe. Flagged in the output.
+max_expirations = 12
