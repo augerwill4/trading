@@ -1,0 +1,5 @@
+# Development dependencies. pytest is not a runtime dependency — it is here so
+# that "minimal dependencies" in CLAUDE.md stays true of what the tool actually
+# needs to run.
+-r requirements.txt
+pytest>=8.0        # verified 9.1.1
